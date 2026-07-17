@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brew & Justice — Focus Mode Prototype</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; background: #0b0b0f; color: #dce3ec; font-family: ui-monospace, "Segoe UI Mono", "Courier New", monospace; overflow: hidden; }
+        #wrap { position: relative; width: 100vw; height: 100vh; }
+        canvas { display: block; width: 100%; height: 100%; }
+        #ui { position: absolute; left: 16px; top: 16px; width: 260px; }
+        .card { background: #0e1117bf; border: 1px solid #1f2937; padding: 12px; border-radius: 10px; backdrop-filter: blur(4px); }
+        .meter { height: 8px; background: #0b0f18; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+        .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22d3ee7a, #a78bfa7a, #fb71857a); border-radius: 999px; transition: width .2s linear; }
+        .meta { font-size: 11px; color: #5b6578; margin-top: 8px; }
+        .legend { margin-top: 10px; font-size: 11px; color: #8c95aa; }
+        .legend b { color: #dce3ec; }
+    </style>
+</head>
+<body>
+<div id="wrap">
+    <canvas id="scene"></canvas>
+    <div id="ui">
+        <div class="card">
+            <div style="font-size: 12px; letter-spacing: 0.12em; color: #7aa7ca;">SENSORY METER</div>
+            <div class="meter"><div id="sensoryFill" class="fill"></div></div>
+            <div class="meta" id="state">Baseline — borough ambient</div>
+            <div class="legend"><b>F</b> toggle focus</div>
+            <div class="legend"><b>Click canvas</b> raise load</div>
+            <div class="legend"><b>Space</b> use stim tool</div>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.createElement('canvas');
+document.getElementById('scene').appendChild(canvas);
+const ctx = canvas.getContext('2d');
+const fill = document.getElementById('sensoryFill');
+const stateEl = document.getElementById('state');
+
+let W, H;
+function resize() {
+    const wrap = document.getElementById('wrap');
+    W = canvas.width = wrap.clientWidth;
+    H = canvas.height = wrap.clientHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+let sensory = 18; // 0-100
+let focus = false;
+let stimCooldown = 0;
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'f' || e.key === 'F') focus = !focus;
+    if (e.key === ' ') { stimCooldown = 60; sensory = Math.max(0, sensory - 18); }
+});
+canvas.addEventListener('mousedown', () => { sensory = Math.min(100, sensory + 8); });
+
+class Drop {
+    constructor() { this.reset(true); }
+    reset(initial) {
+        this.x = Math.random() * W;
+        this.y = initial ? Math.random() * H : -20;
+        this.vy = 120 + Math.random() * 220;
+        this.len = 10 + Math.random() * 18;
+        this.alpha = 0.08 + Math.random() * 0.12;
+    }
+    step(dt) {
+        this.y += this.vy * dt;
+        if (this.y > H + this.len) this.reset(false);
+    }
+    draw(ctx) {
+        ctx.strokeStyle = `rgba(100, 220, 255, ${this.alpha})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x, this.y + this.len);
+        ctx.stroke();
+    }
+}
+
+// Tire track path in world space
+function buildTrack() {
+    const pts = [];
+    const steps = 220;
+    for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const x = W * 0.22 + t * W * 0.56;
+        const y = H * 0.78 - Math.sin(t * Math.PI * 2.3) * H * 0.18 - t * H * 0.12;
+        pts.push({x, y});
+    }
+    return pts;
+}
+const track = buildTrack();
+
+const drops = Array.from({length: 140}, () => new Drop());
+
+function vignette(strength) {
+    const r = Math.min(W, H) * (0.55 + strength * 0.25);
+    const g = ctx.createRadialGradient(W/2, H/2, r * 0.2, W/2, H/2, r);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, `rgba(0,0,0,${0.15 + strength * 0.55})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+}
+
+function drawTrack(time) {
+    // Subtle background tire impression
+    ctx.strokeStyle = 'rgba(200, 210, 230, 0.12)';
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(track[0].x, track[0].y);
+    for (let i = 1; i < track.length; i++) ctx.lineTo(track[i].x, track[i].y);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+
+    const intensity = focus ? 0.9 : 0.18;
+    const pulse = 1 + Math.sin(time * 3.5) * 0.18;
+
+    // neon glow
+    ctx.shadowBlur = focus ? 24 : 8;
+    ctx.shadowColor = 'rgba(0,255,245,0.75)';
+    ctx.strokeStyle = `rgba(0, 240, 255, ${intensity})`;
+    ctx.beginPath();
+    ctx.moveTo(track[0].x, track[0].y);
+    for (let i = 1; i < track.length; i++) ctx.lineTo(track[i].x, track[i].y);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // energized particle along track on focus
+    if (focus) {
+        const t = (Math.sin(time * 5.2) * 0.5 + 0.5);
+        const idx = Math.floor(t * (track.length - 1));
+        const p = track[idx];
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.2 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+let last = performance.now();
+let timeAgo = 0;
+function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    timeAgo += dt;
+
+    // Sensory dynamics
+    const target = focus ? Math.min(1, sensory / 100 + 0.08) : sensory / 100;
+    sensory += Math.max(0, target - sensory) < 0.01 ? 0 : Math.sign((focus ? Math.min(1, sensory/100 + 0.08) : sensory/100) - sensory) * dt * 18;
+    sensory = Math.max(0, Math.min(100, sensory));
+
+    if (stimCooldown > 0) stimCooldown--;
+
+    // Determine mode
+    let mode = 'Baseline';
+    let peripheral = 1;
+    let clueVisibility = 0.25;
+    if (sensory >= 40 && sensory < 75) { mode = 'Hyperfocus'; peripheral = 0.45; clueVisibility = 0.7; }
+    else if (sensory >= 75) { mode = 'Overload'; peripheral = 0.2; clueVisibility = 0.95; }
+    if (focus) mode += ' · Focus';
+
+    // Draw: base background — alley tones
+    ctx.fillStyle = '#0b0f16';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#0e1520';
+    ctx.fillRect(0, Math.floor(H * 0.68), W, H - Math.floor(H * 0.68));
+
+    // Puddles
+    ctx.fillStyle = 'rgba(10, 35, 55, 0.85)';
+    ctx.beginPath();
+    ctx.ellipse(W * 0.55, H * 0.82, W * 0.18, H * 0.04, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(W * 0.3, H * 0.9, W * 0.08, H * 0.015, 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rain + distant neon suggestions
+    ctx.globalAlpha = peripheral;
+    drops.forEach(d => { d.step(dt); d.draw(ctx); });
+    ctx.globalAlpha = clueVisibility;
+    drawTrack(timeAgo);
+    ctx.globalAlpha = 1;
+
+    // Heatwave distortion subtle vignette by mode
+    const strength = sensory/100 * (focus ? 0.6 : 0.3);
+    vignette(strength);
+
+    // UI update
+    fill.style.width = sensory.toFixed(1) + '%';
+    stateEl.textContent = `${mode} — ${sensory.toFixed(0)}%`;
+
+    requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
