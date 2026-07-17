@@ -5,7 +5,6 @@ signal focus_changed(is_focused: bool)
 
 var active := false
 
-
 func toggle() -> void:
-	active = not active
+	active = !active
 	focus_changed.emit(active)

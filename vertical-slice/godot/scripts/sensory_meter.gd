@@ -1,28 +1,54 @@
-extends Node
-class_name SensoryMeter
+extends SensoryMeter
+# SensoryMeter owns load state and tier thresholds.
+# Signals keep changes decoupled from rendering/logic.
+
+signal load_changed(value: float)
+signal mode_changed(mode: String)
 
 var sensory := 18.0
+# Baseline: 0-40, Hyperfocus: 41-75, Overload: 76-100
+const MODE_BASELINE := "Baseline"
+const MODE_HYPERFOCUS := "Hyperfocus"
+const MODE_OVERLOAD := "Overload"
 
 
-# Reduce sensory load.
-func reduce_load(amount: float) -> void:
-	sensory = float(clamp(sensory - amount, 0.0, 100.0))
-
-
-# Set sensory load directly.
 func set_load(value: float) -> void:
-	sensory = float(clamp(value, 0.0, 100.0))
+	var new_val := float(clamp(value, 0.0, 100.0))
+	if sensory == new_val:
+		return
+	sensory = new_val
+	var new_mode := _compute_mode()
+	load_changed.emit(sensory)
+	mode_changed.emit(new_mode)
 
 
-# Current mode computed from sensory value.
-func mode_name() -> String:
+func add_load(amount: float) -> void:
+	set_load(sensory + amount)
+
+
+func reduce_load(amount: float) -> void:
+	set_load(sensory - amount)
+
+
+func reset() -> void:
+	set_load(18.0)
+
+
+func _compute_mode() -> String:
 	if sensory < 40.0:
-		return "Baseline"
+		return MODE_BASELINE
 	elif sensory < 75.0:
-		return "Hyperfocus"
-	return "Overload"
+		return MODE_HYPERFOCUS
+	return MODE_OVERLOAD
 
 
-# Reset to a calm starting value.
+func mode_name() -> String:
+	return _compute_mode()
+
+
+func current_sensory() -> float:
+	return sensory
+
+
 func reset() -> void:
 	set_load(18.0)
