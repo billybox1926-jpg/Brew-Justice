@@ -1,0 +1,17 @@
+[application]
+
+config/name="Brew & Justice"
+config/description="A cozy neo-noir sensory-isometric adventure about coffee, community, and neurodivergent justice."
+config/features=PackedStringArray("4.4", "CGFloat")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode=canvas_items
+
+[render]
+
+renderer/rendering_method="forward_plus"
+textures/canvas_textures/default_texture_filter=1
