@@ -1,4 +1,4 @@
-extends SensoryMeter
+extends Node
 # SensoryMeter owns load state and tier thresholds.
 # Signals keep changes decoupled from rendering/logic.
 
@@ -48,7 +48,3 @@ func mode_name() -> String:
 
 func current_sensory() -> float:
 	return sensory
-
-
-func reset() -> void:
-	set_load(18.0)

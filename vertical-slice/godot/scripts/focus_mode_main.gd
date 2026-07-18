@@ -8,6 +8,8 @@ var sensory := 18.0
 var focus_active := false
 var elapsed := 0.0
 var peripheries := 1.0
+var presence := 0.0  # rises as the player stims; the room settles with them
+var chaos := 0.0  # sensory static in the room; raised by disruptors, drains over time
 var clue_alpha := 0.25
 var stream_id_requested := false
 
@@ -71,6 +73,7 @@ func _ready() -> void:
 	stim = StimTool.new()
 	add_child(stim)
 	stim.stim_released.connect(_on_stim_released)
+	stim.rhythm_pulse.connect(_on_rhythm_pulse)
 
 	reset_requested.connect(_on_reset)
 
@@ -92,6 +95,8 @@ func _input(event: InputEvent) -> void:
 				stim.press()
 			elif event.keycode == KEY_R:
 				_on_reset()
+			elif event.keycode == KEY_C:
+				_on_chaos(0.6)
 		else:
 			if event.keycode == KEY_SPACE:
 				stim.release()
@@ -110,6 +115,9 @@ func _notification(what: int) -> void:
 func _process(delta: float) -> void:
 	delta = min(delta, 0.05)
 	elapsed += delta
+	presence = max(presence - delta * (0.15 + chaos * 0.4), 0.0)
+	chaos = max(chaos - delta * 0.2, 0.0)
+	stim.chaos = chaos
 	stim.update(delta)
 
 	if focus_active:
@@ -160,6 +168,16 @@ func _on_stim_released(strength: float) -> void:
 	var drop := strength * 18.0
 	meter.reduce_load(drop)
 	sensory = meter.sensory
+
+
+func _on_rhythm_pulse(intensity: float) -> void:
+	# The room leans toward the player's calm — but chaos bleeds the leak.
+	presence = min(presence + intensity * 0.1 * (1.0 - chaos * 0.8), 1.0)
+
+
+func _on_chaos(strength: float) -> void:
+	# A disruptor (neon flicker, hostile patron) spikes the room's static.
+	chaos = min(chaos + strength, 1.0)
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:
@@ -278,7 +296,7 @@ func _draw() -> void:
 	_update_trail()
 
 	# Peripheral fade
-	_vignette(1.0 - peripheries)
+	_vignette(1.0 - peripheries, presence)
 
 	# Clue marker
 	var hint_idx := int(clamp(elapsed * 9.0, 0.0, float(odor_points.size() - 1)))
@@ -482,7 +500,8 @@ func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
 
 # === Helpers ===
 
-func _vignette(strength: float) -> void:
+func _vignette(strength: float, calm: float = 0.0) -> void:
+	strength = max(strength - calm * 0.5, 0.0)
 	var size := get_rect().size
 	var r := min(size.x, size.y) * (0.6 + strength * 0.25)
 	var edge := size - Vector2(r, r)
