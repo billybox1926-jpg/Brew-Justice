@@ -5,7 +5,6 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-2ea44f)
 ![Status: Vertical Slice](https://img.shields.io/badge/status-vertical%20slice-blue)
 ![Sensory Justice: Neurodivergent-friendly](https://img.shields.io/badge/sensory--justice-neurodivergent%20friendly-9cf)
-[![Docs: README Upgrade](https://img.shields.io/badge/docs-README%20upgrade-in_progress-yellow)](https://github.com/billybox1926-jpg/Brew-Justice/issues/19)
 [![Contributors wanted](https://img.shields.io/badge/contributors-wanted-brightgreen)](https://github.com/billybox1926-jpg/Brew-Justice/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 <p align="center">
