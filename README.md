@@ -51,18 +51,17 @@ you care about games that respect how minds actually work.
 ## The loop at a glance
 
 ```
-        focus (F)
-   Baseline ───────────▶ Hyperfocus
-      ▲                     │  │
-      │ reset (R)           │  │ load rises (click / time)
-      │ / load drops        │  ▼
-      │                  Overload
-      ▲                     │
+                focus (F)
+   Baseline ───────────────▶ Hyperfocus
+      ▲                        │
+      │ reset (R) / load drops│ load rises (click / time)
+      │                        ▼
+      │                     Overload
       └──── stim release (Space) ┘
 
-   Baseline   0–40   periphery open, clue dim
-   Hyperfocus 41–75  perception boosted
-   Overload   76–100 periphery collapses, clue bright
+   Baseline   0-40    periphery open, clue dim
+   Hyperfocus 41-75   perception boosted
+   Overload   76-100  periphery collapses, clue bright
 ```
 
 Two signals ride on top of the state:
