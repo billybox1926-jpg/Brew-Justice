@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="Animated Brew &amp; Justice focus-mode mock">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="45%" r="60%">
+      <stop offset="20%" stop-color="#0b0b0f" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#05050a" stop-opacity="0.9"/>
+    </radialGradient>
+    <linearGradient id="sense" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="55%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#fb7185"/>
+    </linearGradient>
+  </defs>
+
+  <!-- scene background -->
+  <rect width="320" height="200" fill="#0b0b0f"/>
+
+  <!-- tire-tread clue: faint, then glows as focus rises -->
+  <path d="M40 150 q60 -40 120 -10 t120 -20" fill="none" stroke="#00f0f5" stroke-width="3"
+        stroke-linecap="round" opacity="0.18">
+    <animate attributeName="opacity" values="0.18;0.92;0.18" dur="6s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-width" values="3;5;3" dur="6s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- smudge: visible at rest, fades as focus rises -->
+  <path d="M40 150 q60 -40 120 -10 t120 -20" fill="none" stroke="#c8c0b0" stroke-width="14"
+        stroke-linecap="round" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.06;0.6" dur="6s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- rhythmic stim pulse: beats while held -->
+  <circle cx="160" cy="70" r="10" fill="#22d3ee" opacity="0.85">
+    <animate attributeName="r" values="4;16;4" dur="0.55s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.9;0;0.9" dur="0.55s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- chaos spike: occasional jolt -->
+  <rect x="250" y="20" width="40" height="8" rx="4" fill="#fb7185" opacity="0">
+    <animate attributeName="opacity" values="0;0;0.9;0" keyTimes="0;0.7;0.78;0.9" dur="6s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- vinyl vignette: eases back as presence rises -->
+  <rect width="320" height="200" fill="url(#vig)">
+    <animate attributeName="opacity" values="1;0.35;1" dur="6s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- sensory meter -->
+  <rect x="20" y="180" width="280" height="8" rx="4" fill="#0b0f18"/>
+  <rect x="20" y="180" width="120" height="8" rx="4" fill="url(#sense)">
+    <animate attributeName="width" values="120;60;200;120" dur="6s" repeatCount="indefinite"/>
+  </rect>
+
+  <text x="20" y="14" fill="#7aa7ca" font-family="ui-monospace,monospace" font-size="9">focus-mode loop</text>
+</svg>

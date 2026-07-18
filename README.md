@@ -1,33 +1,92 @@
-# Brew & Justice
+# Brew &amp; Justice
 
 ![Godot](https://img.shields.io/badge/Godot-4.4-478CBF?logo=godotengine&logoColor=white)
 ![GDScript](https://img.shields.io/badge/language-GDScript-478CBF)
 ![License: MIT](https://img.shields.io/badge/license-MIT-2ea44f)
 ![Status: Vertical Slice](https://img.shields.io/badge/status-vertical%20slice-blue)
 ![Sensory Justice: Neurodivergent-friendly](https://img.shields.io/badge/sensory--justice-neurodivergent%20friendly-9cf)
+[![Docs: README Upgrade](https://img.shields.io/badge/docs-README%20upgrade-in_progress-yellow)](https://github.com/billybox1926-jpg/Brew-Justice/issues/19)
+
+<p align="center">
+  <img src="assets/readme-focus-mock.svg" alt="Animated focus-mode loop mock" width="320"/>
+</p>
 
 A cozy neo-noir game about coffee, community, and **sensory justice** — built
 in Godot 4.4 (GDScript).
 
-The premise: different minds perceive the world deeply and intensely. This
-game isn't built *with* accessibility features bolted on — accessibility **is**
-the genre. The way a player regulates their own sensory load isn't a side
-mechanic; it's how they investigate, co-regulate the room around them, and
-solve mysteries.
+## Why this exists
+
+Different minds perceive the world deeply and intensely. Most games bolt
+accessibility on as a settings menu. **Brew &amp; Justice inverts that:** the way
+a player regulates their own sensory load *is* the game. There is no "normal"
+mode and a "helper" mode — accessibility **is** the genre.
+
+The premise is a small borough cafe where the detective's sharpest tool is
+rhythm. Holding a steady beat calms them; that calm leaks into the room and the
+space opens up around them. Disruption is noise, not a separate health bar: a
+chaos spike jitters the beat and throttles how much peace reaches the world.
+The shield and the weapon share the same currency — **rhythm.** Solving the
+mystery means learning to regulate, not overpowering anything.
+
+## The loop at a glance
+
+```mermaid
+stateDiagram-v2
+    [*] --> Baseline
+    Baseline --> Hyperfocus : focus (F)
+    Hyperfocus --> Overload : load ↑ (click / time)
+    Overload --> Hyperfocus : stim release (Space)
+    Hyperfocus --> Baseline : reset (R) / load ↓
+    Baseline --> Overload : load spikes
+
+    note right of Baseline
+        sensory 0–40
+        periphery open, clue dim
+    end note
+    note right of Hyperfocus
+        sensory 41–75
+        perception boosted
+    end note
+    note right of Overload
+        sensory 76–100
+        periphery collapses, clue bright
+    end note
+```
+
+Two signals ride on top of the state:
+
+- **`presence`** rises with each steady `rhythm_pulse` and eases the vignette
+  back — the room co-regulates with the player.
+- **`chaos`** (from a disruptor) injects jitter into the beat and throttles the
+  calm leak, so the space recoils. It decays on its own; keep stimming to win
+  your peace back.
+
+## Signal flow
+
+```mermaid
+flowchart LR
+    S[StimTool] -->|rhythm_pulse int| F[FocusModeMain]
+    S -->|stim_released float| F
+    D[Disruptor] -->|chaos_pulse float| F
+    F -->|load change| M[SensoryMeter]
+    M -->|mode: Baseline/Hyperfocus/Overload| F
+    F -->|cutoff / Q targets| A[SFX bus: LowPass + HighPass + BandPass]
+    F -->|presence, peripheries| V[Vignette + clue markers]
+    F -->|presence| L[Ambient light + NPC listeners]
+    F -->|chaos throttles| V
+    F -->|chaos throttles| L
+```
+
+Everything is wired through signals, not tree-scans: `FocusModeMain` owns a
+reference to `stim` and reads `chaos`, and the meter/labels react to emitted
+changes. The Disruptor is inert until you connect its `chaos_pulse` to
+`FocusModeMain._on_chaos`.
 
 ## Playable demo (vertical slice)
 
 A runnable Godot 4.4 vertical slice lives in `vertical-slice/godot/`. It is a
-self-contained "focus-mode" scene that demonstrates the core loop:
-
-- **Your calm leaks into the room.** Holding a steady rhythm raises a
-  `presence` value; the peripheral vignette eases back and the space opens up.
-- **Sensory load drives state.** The Sensory Meter moves through
-  `Baseline → Hyperfocus → Overload`, reshaping the audio filters, the
-  peripheral fade, and the clue markers.
-- **Disruption is noise, not a separate bar.** A `chaos` spike injects jitter
-  into your rhythm and throttles how much calm reaches the world. Re-grounding
-  lets it decay. The shield and the weapon share the same currency: rhythm.
+self-contained "focus-mode" scene that demonstrates the core loop described
+above.
 
 ### Run it
 
@@ -62,12 +121,15 @@ on a randomized interval. It does **nothing** until you add it to the scene and
 connect its `chaos_pulse` signal to `FocusModeMain._on_chaos`. By default the
 room stays a sanctuary.
 
-## Prototype (HTML, no build step)
+## Live prototype (no build step)
 
-The early, non-Godot prototype lives in
-[`prototype/focus-mode.html`](prototype/focus-mode.html). It is a single
-self-contained file — open it directly in any modern browser; there is no server
-and no build step. It explores the same focus-mode loop using the Web Audio API.
+Prefer to feel the loop without opening Godot? The early prototype is a single
+self-contained file:
+
+➡️ **[Open `prototype/focus-mode.html` in your browser](prototype/focus-mode.html)** — no
+server, no build step.
+
+It explores the same focus-mode loop with the Web Audio API:
 
 - **F** — toggle focus mode (dims the periphery, brightens the tire-tread clue)
 - **Hold Space** — rhythmic stim; gently lowers sensory load while held
@@ -430,6 +492,18 @@ requestAnimationFrame(frame);
 
 </details>
 
+## Roadmap
+
+Tracked across four milestones. Full issue list:
+[#19 README upgrade](https://github.com/billybox1926-jpg/Brew-Justice/issues/19) · milestones below.
+
+| Milestone | Theme | Highlights |
+| --- | --- | --- |
+| [#2 Vertical Slice Polish](https://github.com/billybox1926-jpg/Brew-Justice/milestone/2) | Ship the slice | Disruptor wiring (#4), neon-flicker overlay (#3), scent/locator trail (#14), vignette calm signal (#18), WIRING doc (#5), on-screen chaos UI (#6) |
+| [#3 Sensory Systems](https://github.com/billybox1926-jpg/Brew-Justice/milestone/3) | Sound + world react | BandPass "tune-in" (#7), presence-driven light + NPC (#8), smudge→neon clue (#9), real cafe ambience (#17), legible trail (#14) |
+| [#4 Narrative &amp; World](https://github.com/billybox1926-jpg/Brew-Justice/milestone/4) | The mystery | Sensory-crime loop (#10), antagonist-as-chaos lore (#11), clue-graph model (#15) |
+| [#5 Accessibility Audit](https://github.com/billybox1926-jpg/Brew-Justice/milestone/5) | Sensory justice, verified | Colorblind-safe palette (#12), input remap + captions (#13), persist prefs (#16) |
+
 ## Project layout
 
 ```
@@ -442,9 +516,18 @@ vertical-slice/godot/
     stim_tool.gd              # hold-to-charge stim + rhythm_pulse + chaos
     disruptor.gd              # opt-in chaos source (inert until connected)
 prototype/
-  focus-mode.html             # early non-Godot prototype
+  focus-mode.html             # early non-Godot prototype (Web Audio)
+assets/
+  readme-focus-mock.svg       # animated loop preview used above
 WIRING.md                     # 90-second Godot wiring checklist
 ```
+
+## Documentation
+
+- **Contributors** — see [CONTRIBUTORS.md](CONTRIBUTORS.md) (workflow, branch
+  hygiene, and how issues/milestones are organized).
+- **Architecture** — see [ARCHITECTURE.md](ARCHITECTURE.md) for the full
+  signal-driven design behind the diagrams above.
 
 ## License
 
