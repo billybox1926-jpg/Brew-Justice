@@ -67,16 +67,16 @@ beat_prev = beat_now
 
 ```mermaid
 flowchart LR
-    S[StimTool] -->|rhythm_pulse intensity| F[FocusModeMain]
-    S -->|stim_released strength| F
-    D[Disruptor] -->|chaos_pulse strength| F
+    S[StimTool] -->|rhythm_pulse| F[FocusModeMain]
+    S -->|stim_released| F
+    D[Disruptor] -->|chaos_pulse| F
     F -->|load change| M[SensoryMeter]
     M -->|mode_changed| F
-    F -->|_lerp_audio| A[SFX bus: LowPass + HighPass + BandPass]
-    F -->|presence, peripheries| V[Vignette + clue markers]
-    F -->|presence| L[Ambient light + NPC listeners]
-    F -->|chaos throttles| V
-    F -->|chaos throttles| L
+    F -->|audio targets| A[SFX bus]
+    F -->|presence and peripheries| V[Vignette plus clue]
+    F -->|presence| L[Ambient light plus NPC]
+    F -.->|chaos throttles| V
+    F -.->|chaos throttles| L
 ```
 
 What each arrow does per frame in `_process`:
