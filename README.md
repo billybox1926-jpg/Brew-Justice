@@ -6,6 +6,7 @@
 ![Status: Vertical Slice](https://img.shields.io/badge/status-vertical%20slice-blue)
 ![Sensory Justice: Neurodivergent-friendly](https://img.shields.io/badge/sensory--justice-neurodivergent%20friendly-9cf)
 [![Docs: README Upgrade](https://img.shields.io/badge/docs-README%20upgrade-in_progress-yellow)](https://github.com/billybox1926-jpg/Brew-Justice/issues/19)
+[![Contributors wanted](https://img.shields.io/badge/contributors-wanted-brightgreen)](https://github.com/billybox1926-jpg/Brew-Justice/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 <p align="center">
   <img src="assets/readme-focus-mock.svg" alt="Animated focus-mode loop mock" width="320"/>
@@ -53,22 +54,18 @@ you care about games that respect how minds actually work.
 stateDiagram-v2
     [*] --> Baseline
     Baseline --> Hyperfocus : focus (F)
-    Hyperfocus --> Overload : load ↑ (click / time)
+    Hyperfocus --> Overload : load rises (click / time)
     Overload --> Hyperfocus : stim release (Space)
-    Hyperfocus --> Baseline : reset (R) / load ↓
+    Hyperfocus --> Baseline : reset (R) / load drops
     Baseline --> Overload : load spikes
-
     note right of Baseline
-        sensory 0–40
-        periphery open, clue dim
+        sensory 0-40, periphery open, clue dim
     end note
     note right of Hyperfocus
-        sensory 41–75
-        perception boosted
+        sensory 41-75, perception boosted
     end note
     note right of Overload
-        sensory 76–100
-        periphery collapses, clue bright
+        sensory 76-100, periphery collapses, clue bright
     end note
 ```
 
@@ -84,16 +81,16 @@ Two signals ride on top of the state:
 
 ```mermaid
 flowchart LR
-    S[StimTool] -->|rhythm_pulse int| F[FocusModeMain]
-    S -->|stim_released float| F
-    D[Disruptor] -->|chaos_pulse float| F
+    S[StimTool] -->|rhythm_pulse| F[FocusModeMain]
+    S -->|stim_released| F
+    D[Disruptor] -->|chaos_pulse| F
     F -->|load change| M[SensoryMeter]
-    M -->|mode: Baseline/Hyperfocus/Overload| F
-    F -->|cutoff / Q targets| A[SFX bus: LowPass + HighPass + BandPass]
-    F -->|presence, peripheries| V[Vignette + clue markers]
-    F -->|presence| L[Ambient light + NPC listeners]
-    F -->|chaos throttles| V
-    F -->|chaos throttles| L
+    M -->|mode| F
+    F -->|audio targets| A[SFX bus]
+    F -->|presence and peripheries| V[Vignette plus clue]
+    F -->|presence| L[Ambient light plus NPC]
+    F -.->|chaos throttles| V
+    F -.->|chaos throttles| L
 ```
 
 Everything is wired through signals, not tree-scans: `FocusModeMain` owns a
