@@ -524,10 +524,14 @@ WIRING.md                     # 90-second Godot wiring checklist
 
 ## Documentation
 
-- **Contributors** — see [CONTRIBUTORS.md](CONTRIBUTORS.md) (workflow, branch
-  hygiene, and how issues/milestones are organized).
+- **Contributing** — see [CONTRIBUTING.md](CONTRIBUTING.md) (workflow, branch
+  hygiene, how issues/milestones/labels are organized, and the sensory-safety
+  rule). A short [CONTRIBUTORS.md](CONTRIBUTORS.md) points here.
 - **Architecture** — see [ARCHITECTURE.md](ARCHITECTURE.md) for the full
   signal-driven design behind the diagrams above.
+- **Code of Conduct** — [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Sensory-safe
+  space; we hold a higher bar because the game is *about* sensory justice.
+- **Security** — [SECURITY.md](SECURITY.md) for private vulnerability reporting.
 
 ## License
 
