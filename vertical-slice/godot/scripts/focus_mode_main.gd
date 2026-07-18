@@ -51,7 +51,6 @@ var target_high_q := 0.5
 @onready var highlight := $Highlight
 @onready var tire_smudge: Sprite2D = $SceneView/TireSmudge
 @onready var tire_clue: Sprite2D = $SceneView/TireClue
-@onready var jalopy := $SceneView/JalopyGroup
 
 # === Initialization ===
 
