@@ -426,8 +426,19 @@ func _make_noise_stream() -> AudioStreamWav:
 	var samples := int(stream.mix_rate * duration)
 	var data := PackedByteArray()
 	data.resize(samples * 4)
+	# Pink noise (Paul Kellet refined) — rolls off the harsh highs white noise has.
+	var b0 := 0.0; var b1 := 0.0; var b2 := 0.0; var b3 := 0.0; var b4 := 0.0; var b5 := 0.0; var b6 := 0.0
 	for i in range(samples):
-		var v := int((randf() * 2.0 - 1.0) * 32767.0)
+		var white := randf() * 2.0 - 1.0
+		b0 = 0.99886 * b0 + white * 0.0555179
+		b1 = 0.99332 * b1 + white * 0.0750759
+		b2 = 0.96900 * b2 + white * 0.1538520
+		b3 = 0.86650 * b3 + white * 0.3104856
+		b4 = 0.55000 * b4 + white * 0.5329522
+		b5 = -0.7616 * b5 - white * 0.0168980
+		var pink := b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362
+		b6 = white * 0.115926
+		var v := int(clamp(pink * 0.22, -1.0, 1.0) * 32767.0)   # scale to avoid clipping
 		data[i * 4 + 0] = v & 0xFF
 		data[i * 4 + 1] = (v >> 8) & 0xFF
 		data[i * 4 + 2] = v & 0xFF
