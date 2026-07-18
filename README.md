@@ -50,23 +50,19 @@ you care about games that respect how minds actually work.
 
 ## The loop at a glance
 
-```mermaid
-stateDiagram-v2
-    [*] --> Baseline
-    Baseline --> Hyperfocus : focus (F)
-    Hyperfocus --> Overload : load rises (click / time)
-    Overload --> Hyperfocus : stim release (Space)
-    Hyperfocus --> Baseline : reset (R) / load drops
-    Baseline --> Overload : load spikes
-    note right of Baseline
-        sensory 0-40, periphery open, clue dim
-    end note
-    note right of Hyperfocus
-        sensory 41-75, perception boosted
-    end note
-    note right of Overload
-        sensory 76-100, periphery collapses, clue bright
-    end note
+```
+        focus (F)
+   Baseline ───────────▶ Hyperfocus
+      ▲                     │  │
+      │ reset (R)           │  │ load rises (click / time)
+      │ / load drops        │  ▼
+      │                  Overload
+      ▲                     │
+      └──── stim release (Space) ┘
+
+   Baseline   0–40   periphery open, clue dim
+   Hyperfocus 41–75  perception boosted
+   Overload   76–100 periphery collapses, clue bright
 ```
 
 Two signals ride on top of the state:
@@ -79,18 +75,17 @@ Two signals ride on top of the state:
 
 ## Signal flow
 
-```mermaid
-flowchart LR
-    S[StimTool] -->|rhythm_pulse| F[FocusModeMain]
-    S -->|stim_released| F
-    D[Disruptor] -->|chaos_pulse| F
-    F -->|load change| M[SensoryMeter]
-    M -->|mode| F
-    F -->|audio targets| A[SFX bus]
-    F -->|presence and peripheries| V[Vignette plus clue]
-    F -->|presence| L[Ambient light plus NPC]
-    F -.->|chaos throttles| V
-    F -.->|chaos throttles| L
+```
+  StimTool ──rhythm_pulse──▶ FocusModeMain ──load──▶ SensoryMeter
+     │                          │  ▲
+     └──stim_released──────────┘  │ mode
+                                  │
+  Disruptor ──chaos_pulse────────┘
+                                  │
+        FocusModeMain emits to:
+          • SFX bus        (LowPass + HighPass + BandPass)  [audio targets]
+          • Vignette + clue markers   (presence, peripheries)  ┄ chaos throttles
+          • Ambient light + NPC       (presence)              ┄ chaos throttles
 ```
 
 Everything is wired through signals, not tree-scans: `FocusModeMain` owns a

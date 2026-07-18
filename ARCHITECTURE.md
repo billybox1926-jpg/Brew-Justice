@@ -65,18 +65,16 @@ beat_prev = beat_now
 
 ## Signal flow (the meat)
 
-```mermaid
-flowchart LR
-    S[StimTool] -->|rhythm_pulse| F[FocusModeMain]
-    S -->|stim_released| F
-    D[Disruptor] -->|chaos_pulse| F
-    F -->|load change| M[SensoryMeter]
-    M -->|mode_changed| F
-    F -->|audio targets| A[SFX bus]
-    F -->|presence and peripheries| V[Vignette plus clue]
-    F -->|presence| L[Ambient light plus NPC]
-    F -.->|chaos throttles| V
-    F -.->|chaos throttles| L
+```
+StimTool ──rhythm_pulse──▶ FocusModeMain ──load──▶ SensoryMeter
+   │                          │  ▲
+   └──stim_released──────────┘  │ mode_changed
+Disruptor ──chaos_pulse────────┘
+                                 │
+       FocusModeMain emits to:
+         • SFX bus        (LowPass + HighPass + BandPass)  [audio targets]
+         • Vignette + clue markers   (presence, peripheries)  ┄ chaos throttles
+         • Ambient light + NPC       (presence)              ┄ chaos throttles
 ```
 
 What each arrow does per frame in `_process`:
