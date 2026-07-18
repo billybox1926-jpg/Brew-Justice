@@ -1,0 +1,33 @@
+# Godot 4.x import cache — regenerated locally, never committed
+.godot/
+
+# Godot-specific import artifacts (rebuilt from assets on open)
+*.import
+
+# Mono / C# (not used here, but standard to exclude if added later)
+.mono/
+data_*/
+mono_crash.*.json
+
+# Local editor/platform config
+.godot/editor/
+.godot/imported/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local secrets — never commit tokens or credentials
+*.token
+*.txt.local
+token.txt
+.env
+.env.*
+!.env.example
+
+# Build / export output
+build/
+exports/
+*.pck
+*.exe
