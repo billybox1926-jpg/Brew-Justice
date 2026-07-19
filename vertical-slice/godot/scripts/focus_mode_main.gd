@@ -17,6 +17,7 @@ var stream_id_requested := false
 var meter: SensoryMeter
 var focus: FocusToggle
 var stim: StimTool
+var disruption_overlay: DisruptionOverlay
 
 # Track + rain
 var track_points: PackedVector2Array = PackedVector2Array()
@@ -51,6 +52,7 @@ var target_high_q := 0.5
 @onready var highlight := $Highlight
 @onready var tire_smudge: Sprite2D = $SceneView/TireSmudge
 @onready var tire_clue: Sprite2D = $SceneView/TireClue
+@onready var disruption_overlay_node: DisruptionOverlay = $DisruptionOverlay
 
 # === Initialization ===
 
@@ -83,6 +85,8 @@ func _ready() -> void:
 	init_drops()
 	_setup_audio()
 	_setup_ui()
+	disruption_overlay = disruption_overlay_node
+	_update_disruption_overlay()
 
 
 func _input(event: InputEvent) -> void:
@@ -117,6 +121,7 @@ func _process(delta: float) -> void:
 	presence = max(presence - delta * (0.15 + chaos * 0.4), 0.0)
 	chaos = max(chaos - delta * 0.2, 0.0)
 	stim.chaos = chaos
+	_update_disruption_overlay()
 	stim.update(delta)
 
 	if focus_active:
@@ -177,6 +182,12 @@ func _on_rhythm_pulse(intensity: float) -> void:
 func _on_chaos(strength: float) -> void:
 	# A disruptor (neon flicker, hostile patron) spikes the room's static.
 	chaos = min(chaos + strength, 1.0)
+	_update_disruption_overlay()
+
+
+func _update_disruption_overlay() -> void:
+	if disruption_overlay:
+		disruption_overlay.chaos = chaos
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:

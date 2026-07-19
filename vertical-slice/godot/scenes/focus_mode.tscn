@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/focus_mode_main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/sensory_meter.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/focus_toggle.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/stim_tool.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/disruption_overlay.gd" id="8"]
 [ext_resource type="Texture2D" path="res://assets/sprites/tire_smudge.png" id="5"]
 [ext_resource type="Texture2D" path="res://assets/sprites/tire_clue.png" id="6"]
 [ext_resource type="Texture2D" path="res://assets/sprites/meter_fill.png" id="7"]
@@ -75,3 +76,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.0, 0.94, 1.0, 0.35)
 visible = false
+
+[node name="DisruptionOverlay" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("8")
