@@ -529,14 +529,28 @@ func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
 # === Helpers ===
 
 func _vignette(strength: float, calm: float = 0.0) -> void:
-	strength = max(strength - calm * 0.5, 0.0)
+	# Presence should read as co-regulation: each steady rhythm pulse opens the
+	# periphery instead of letting chaos collapse into a harsh tunnel.
+	var regulated_strength := clamp(strength - calm * 0.7, 0.0, 1.0)
+	var eased_strength := ease(regulated_strength, 0.5)
+	var calm_glow := clamp(calm, 0.0, 1.0)
 	var size := get_rect().size
-	var r := min(size.x, size.y) * (0.6 + strength * 0.25)
+	var r := min(size.x, size.y) * (0.55 + eased_strength * 0.3 + calm_glow * 0.04)
 	var edge := size - Vector2(r, r)
-	var g := Color(0, 0, 0, 0.12 + strength * 0.62)
+	var alpha := 0.10 + eased_strength * 0.56 - calm_glow * 0.04
+	# Keep the cue non-hue dependent: alpha and aperture carry the signal, while
+	# the calm rim is a low-contrast value cue that reads as the room softening.
+	var g := Color(0.035, 0.035, 0.032, clamp(alpha, 0.06, 0.66))
+	var rim := Color(0.92, 0.88, 0.78, calm_glow * 0.08)
 	var xf := max(0.0, edge.x / 2.0)
 	var yf := max(0.0, edge.y / 2.0)
 	draw_rect(Rect2(Vector2(0, 0), Vector2(size.x, yf)), g)
 	draw_rect(Rect2(Vector2(0, (size.y + r) / 2.0), Vector2(size.x, yf)), g)
 	draw_rect(Rect2(Vector2(0, 0), Vector2(xf, size.y)), g)
 	draw_rect(Rect2(Vector2((size.x + r) / 2.0, 0), Vector2(xf, size.y)), g)
+	if calm_glow > 0.0 and xf > 0.0 and yf > 0.0:
+		var rim_width := 2.0 + calm_glow * 3.0
+		draw_rect(Rect2(Vector2(xf - rim_width, yf - rim_width), Vector2(r + rim_width * 2.0, rim_width)), rim)
+		draw_rect(Rect2(Vector2(xf - rim_width, yf + r), Vector2(r + rim_width * 2.0, rim_width)), rim)
+		draw_rect(Rect2(Vector2(xf - rim_width, yf), Vector2(rim_width, r)), rim)
+		draw_rect(Rect2(Vector2(xf + r, yf), Vector2(rim_width, r)), rim)
