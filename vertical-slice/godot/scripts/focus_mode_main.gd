@@ -47,6 +47,20 @@ var odor_points := PackedVector2Array(
 	PackedVector2Array([Vector2(502, 564), Vector2(571, 514), Vector2(658, 486), Vector2(740, 494), Vector2(736, 512)])
 )
 
+# === Scent trail legibility ===
+const TRAIL_MIN_POINTS := 14
+const TRAIL_STEP_POINTS := 22
+const TRAIL_DASH_MAX_STEP := 18
+const TRAIL_DASH_LEN := 14
+const TRAIL_SHAPE_COUNT := 3
+const HIGHLIGHT_SMOOTH := 4.5
+# Trail style is modulated by presence + focus state; color carries less meaning.
+var trail_target_len := TRAIL_MIN_POINTS
+var trail_current_len := TRAIL_MIN_POINTS
+var trail_dash_step := TRAIL_DASH_MAX_STEP
+var trail_shape_idx := 0
+var trail_highlight_strength := 0.0
+
 # Audio
 var audio_ready := false
 var sfx_bus_idx := -1
@@ -165,6 +179,7 @@ func _process(delta: float) -> void:
 	_audio_targets()
 	_lerp_audio(delta)
 	_update_world_listeners(delta)
+	_update_trail_legibility(delta)
 	_update_ui()
 	queue_redraw()
 
@@ -333,48 +348,101 @@ func _midpoint_series(points: PackedVector2Array) -> PackedVector2Array:
 		out.append((points[i] + points[i + 1]) / 2.0)
 	return out
 
-func _update_trail() -> void:
-	var mode := meter.mode_name()
-	var bind_color := Color(0.847, 0.153, 0.137, 0)
-	var bind_width := 4.0
-	if mode == "Baseline":
-		bind_color = Color(0.961, 0.714, 0.18, 0.08)
-		bind_width = 8.0
-	elif mode == "Hyperfocus":
-		bind_color = Color(0.961, 0.714, 0.18, 0.24)
-		bind_width = 6.0
-	else:
-		bind_color = Color(0.961, 0.714, 0.18, 0.18)
-		bind_width = 10.0
+func _update_trail_legibility(delta: float) -> void:
+	var focus_bonus := 0.28 if investigation_phase == InvestigationPhase.TuneIn else 0.0
+	var density := clamp(presence * 0.8 + focus_bonus, 0.2, 1.0)
+	trail_target_len = TRAIL_MIN_POINTS + int(floor(density * float(TRAIL_STEP_POINTS)))
+	trail_target_len = clamp(trail_target_len, TRAIL_MIN_POINTS, TRAIL_MIN_POINTS + TRAIL_STEP_POINTS)
+	trail_current_len = lerp(float(trail_current_len), float(trail_target_len), 1.0 - exp(-HIGHLIGHT_SMOOTH * delta))
+	trail_current_len = clamp(trail_current_len, float(TRAIL_MIN_POINTS), float(TRAIL_MIN_POINTS + TRAIL_STEP_POINTS))
+	trail_dash_step = int(lerp(float(TRAIL_DASH_MAX_STEP), max(6, TRAIL_DASH_MAX_STEP / 3), density))
+	trail_highlight_strength = clamp(density + (0.3 if focus_active else 0.0), 0.0, 1.0)
+	trail_shape_idx = (trail_shape_idx + 1) % TRAIL_SHAPE_COUNT if delta > 0.0 else trail_shape_idx
 
+
+func _computed_trail_points() -> PackedVector2Array:
 	var all := PackedVector2Array()
 	all.append_array(_trail_for(hazard, trail_offset))
 	all.append_array(_trail_for(SMELL, -16.0))
 	all.append_array(_trail_for(odor_points, -22.0))
 	all.append_array(_midpoint_series(_trail_for(SMELL, -16.0)))
-
-	var limit := int(clamp(lerp(14.0, 200.0, sensory / 100.0), 14.0, float(all.size())))
+	var limit := int(clamp(trail_current_len, float(TRAIL_MIN_POINTS), float(all.size())))
+	limit = max(limit, 14)
 	var pts := PackedVector2Array()
 	pts.resize(limit)
 	for i in range(limit):
 		pts[i] = all[i]
-
-	draw_polyline(pts, bind_color, bind_width)
-	_bind_highlights(all, bind_color)
+	return pts
 
 
-func _bind_highlights(points: PackedVector2Array, bind_color: Color) -> void:
+func _render_trail(points: PackedVector2Array) -> void:
+	var mode := meter.mode_name()
+	var line_color := Color(0.961, 0.714, 0.18, 0.18)
+	var line_width := 8.0
+	if mode == "Baseline":
+		line_color = Color(0.961, 0.714, 0.18, 0.08)
+		line_width = 10.0
+	elif mode == "Hyperfocus":
+		line_color = Color(0.961, 0.714, 0.18, 0.24)
+		line_width = 6.0
+	else:
+		line_color = Color(0.961, 0.714, 0.18, 0.18)
+		line_width = 10.0
+
 	if points.is_empty():
 		return
-	var mode := meter.mode_name()
-	if mode == "Baseline":
+	if trail_dash_step > 1:
+		var dashed := PackedVector2Array()
+		for i in range(0, points.size(), max(trail_dash_step, 1)):
+			var nxt := min(i + TRAIL_DASH_LEN, points.size())
+			if nxt > i:
+				for j in range(i, nxt):
+					dashed.append(points[j])
+		draw_polyline(dashed, line_color, line_width)
+	else:
+		draw_polyline(points, line_color, line_width)
+
+
+func _render_trail_highlights(points: PackedVector2Array, delta: float) -> void:
+	if points.is_empty():
 		return
-	var step := 8
-	var pulse := Color(1.0, 0.82, 0.16, 0.82 * bind_color.a)
-	for i in range(0, points.size(), max(step, 1)):
-		var k := i + int(elapsed * 3.0)
-		var p := points[k % points.size()]
-		draw_circle(p, 2.4, pulse)
+	var q_mode := meter.mode_name()
+	if q_mode == "Baseline" and trail_highlight_strength < 0.22:
+		return
+	var pulse_speed := 2.2 + presence * 3.0
+	var pulse_base := 0.45 + trail_highlight_strength * 0.45
+	var marker_color := Color(1.0, 0.82, 0.16, 0.8 * trail_highlight_strength)
+	var marker_color_alt := Color(0.98, 0.35, 0.22, 0.75 * trail_highlight_strength)
+	var step := max(6, points.size() / 8)
+	for i in range(0, points.size(), step):
+		var phase := elapsed * pulse_speed + i
+		var pulse := sin(phase) * 0.5 + 0.5
+		if pulse < 0.5:
+			continue
+		var p := points[i]
+		var size := 2.4 + pulse * 2.4 * trail_highlight_strength
+		var col := marker_color if trail_shape_idx == i % TRAIL_SHAPE_COUNT else marker_color_alt
+		if trail_shape_idx == 1 and i % (step * 2) == 0:
+			_draw_diamond(p, size, col)
+		elif trail_shape_idx == 2 and i % (step * 2) == 0:
+			_draw_square(p, size, col)
+		else:
+			draw_circle(p, size, col)
+
+
+func _draw_diamond(p: Vector2, size: float, color: Color) -> void:
+	var pts := PackedVector2Array([
+		p + Vector2(0, -size),
+		p + Vector2(size, 0),
+		p + Vector2(0, size),
+		p + Vector2(-size, 0)
+	])
+	draw_colored_polygon(pts, color)
+
+
+func _draw_square(p: Vector2, size: float, color: Color) -> void:
+	var center := size * 0.707
+	draw_rect(Rect2(p - Vector2(center, center), Vector2(size, size)), color)
 
 
 func _draw() -> void:
@@ -394,7 +462,9 @@ func _draw() -> void:
 
 	# Smear + bind graphs
 	_draw_graph(sensory, Color(0.741, 0.482, 0.024, 1.0), Color(0.89, 0.46, 0.02, 1.0), 25)
-	_update_trail()
+	var trail_pts := _computed_trail_points()
+	_render_trail(trail_pts)
+	_render_trail_highlights(trail_pts, delta if delta > 0.0 else 0.016)
 
 	# Peripheral fade
 	_vignette(1.0 - peripheries, presence)
