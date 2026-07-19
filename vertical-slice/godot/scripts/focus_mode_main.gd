@@ -2,6 +2,8 @@ extends Control
 class_name FocusModeMain
 
 signal reset_requested()
+signal investigation_passed()
+signal investigation_blocked()
 
 # === State ===
 var sensory := 18.0
@@ -12,6 +14,16 @@ var presence := 0.0  # rises as the player stims; the room settles with them
 var chaos := 0.0  # sensory static in the room; raised by disruptors, drains over time
 var clue_alpha := 0.25
 var stream_id_requested := false
+
+# Investigation beat
+enum InvestigationPhase { Observe, TuneIn, Resolve, Resolved }
+var investigation_phase := InvestigationPhase.Observe
+var investigation_cooldown := 0.0
+var investigation_clue_idx := 0
+var investigation_emitted := false
+var investigation_resolve_duration := 0.0
+func INVESTIGATION_COOLDOWN() -> float: return 3.0
+func INVESTIGATION_RESOLVE_TIME() -> float: return 1.2
 
 # Components
 var meter: SensoryMeter
@@ -109,6 +121,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			meter.add_load(9.0)
+			_try_resolve_investigation()
 
 
 func _notification(what: int) -> void:
@@ -127,12 +140,16 @@ func _process(delta: float) -> void:
 	_update_disruption_overlay()
 	stim.update(delta)
 
+	if investigation_cooldown > 0.0:
+		investigation_cooldown = max(investigation_cooldown - delta, 0.0)
+
 	if focus_active:
 		meter.add_load(6.0 * delta)
 
 	sensory = clamp(meter.sensory, 0.0, 100.0)
 
 	_peripheral_state()
+	_update_investigation(delta)
 	_rain(delta)
 	_audio_targets()
 	_lerp_audio(delta)
@@ -152,8 +169,55 @@ func _peripheral_state() -> void:
 		peripheries = lerp(peripheries, 1.0, get_process_delta_time() * 3.0)
 		clue_alpha = lerp(clue_alpha, 0.22, get_process_delta_time() * 3.0)
 
-	if focus_active:
-		clue_alpha = max(clue_alpha, 0.96)
+	if investigation_cooldown <= 0.0 and investigation_phase == InvestigationPhase.Observe:
+		investigation_phase = InvestigationPhase.TuneIn
+		investigation_clue_idx = 0
+		investigation_emitted = false
+		_reset_investigation_visuals()
+
+
+func _try_advance_investigation_on_pulse() -> void:
+	if not focus_active:
+		return
+	if investigation_phase == InvestigationPhase.TuneIn:
+		investigation_clue_idx += 1
+	if investigation_clue_idx >= 4:
+		investigation_emitted = true
+
+
+func _try_advance_investigation_on_chaos(strength: float) -> void:
+	if investigation_phase == InvestigationPhase.TuneIn and strength <= 0.25:
+		investigation_clue_idx = max(investigation_clue_idx - 1, 0)
+		investigation_emitted = false
+
+
+func _try_resolve_investigation() -> void:
+	if investigation_phase != InvestigationPhase.TuneIn or investigation_emitted == false:
+		return
+	investigation_phase = InvestigationPhase.Resolved
+	investigation_resolve_duration = INVESTIGATION_RESOLVE_TIME()
+	investigation_passed.emit()
+	focus_active = false
+
+
+func _update_investigation(delta: float) -> void:
+	if investigation_phase == InvestigationPhase.Resolved and investigation_resolve_duration > 0.0:
+		investigation_resolve_duration = max(investigation_resolve_duration - delta, 0.0)
+		if investigation_resolve_duration <= 0.0:
+			_reset_investigation()
+
+
+func _reset_investigation() -> void:
+	investigation_phase = InvestigationPhase.Observe
+	investigation_clue_idx = 0
+	investigation_emitted = false
+	investigation_cooldown = INVESTIGATION_COOLDOWN()
+	_reset_investigation_visuals()
+
+
+func _reset_investigation_visuals() -> void:
+	if tire_clue:
+		tire_clue.modulate.a = 0.0
 
 
 func _on_reset() -> void:
@@ -161,6 +225,7 @@ func _on_reset() -> void:
 	stream_id_requested = false
 	meter.reset()
 	sensory = meter.sensory
+	_reset_investigation()
 
 
 func _on_focus_changed(active: bool) -> void:
@@ -180,12 +245,14 @@ func _on_stim_released(strength: float) -> void:
 func _on_rhythm_pulse(intensity: float) -> void:
 	# The room leans toward the player's calm — but chaos bleeds the leak.
 	presence = min(presence + intensity * 0.1 * (1.0 - chaos * 0.8), 1.0)
+	_try_advance_investigation_on_pulse()
 
 
 func _on_chaos(strength: float) -> void:
-	# A disruptor (neon flicker, hostile patron) spikes the room's static.
+	# A disruptor / hostile shift spikes the room's static.
 	chaos = min(chaos + strength, 1.0)
 	_update_disruption_overlay()
+	_try_advance_investigation_on_chaos(strength)
 
 
 func _update_disruption_overlay() -> void:
@@ -221,7 +288,6 @@ func build_trail() -> void:
 			Vector2(480,524),Vector2(520,512),Vector2(558,500),Vector2(604,510),
 			Vector2(626,516)
 		])
-
 
 var hazard := PackedVector2Array([
 	Vector2(462,572),Vector2(502,552),Vector2(534,528),Vector2(582,512),
@@ -498,12 +564,20 @@ func _update_ui() -> void:
 		stim_indicator.visible = stim.holding
 
 	if tire_clue:
-		var clue_target := 0.18
-		if focus_active or mode != "Baseline":
-			clue_target = 0.8 if mode == "Overload" else 0.72
-		if stream_id_requested:
-			clue_target = max(clue_target, 0.95)
-		tire_clue.modulate.a = move_toward(tire_clue.modulate.a, clue_target, get_process_delta_time() * 4.0)
+		if investigation_phase == InvestigationPhase.TuneIn:
+			# Progress clue presence by steady pulses; add a bonus once fully tuned.
+			var clamped_idx := min(investigation_clue_idx, 3)
+			var target_a := 0.22 + clamped_idx * 0.18 + (0.18 if investigation_emitted else 0.0)
+			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, min(target_a, 0.96), get_process_delta_time() * 4.0)
+		elif investigation_phase == InvestigationPhase.Resolved:
+			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, 0.98, get_process_delta_time() * 5.0)
+		else:
+			var clue_target := 0.18
+			if focus_active or mode != "Baseline":
+				clue_target = 0.8 if mode == "Overload" else 0.72
+			if stream_id_requested:
+				clue_target = max(clue_target, 0.95)
+			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, clue_target, get_process_delta_time() * 4.0)
 
 	if tire_smudge:
 		var smudge_target := 0.08 if focus_active or mode != "Baseline" else 0.75
