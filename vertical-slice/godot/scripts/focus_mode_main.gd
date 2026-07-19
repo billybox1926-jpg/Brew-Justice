@@ -53,6 +53,7 @@ var target_high_q := 0.5
 @onready var tire_smudge: Sprite2D = $SceneView/TireSmudge
 @onready var tire_clue: Sprite2D = $SceneView/TireClue
 @onready var disruption_overlay_node: DisruptionOverlay = $DisruptionOverlay
+@onready var disruptor := $Disruptor
 
 # === Initialization ===
 
@@ -86,6 +87,8 @@ func _ready() -> void:
 	_setup_audio()
 	_setup_ui()
 	disruption_overlay = disruption_overlay_node
+	if disruptor and disruptor.has_signal("chaos_pulse"):
+		disruptor.chaos_pulse.connect(_on_chaos)
 	_update_disruption_overlay()
 
 
