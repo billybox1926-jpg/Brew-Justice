@@ -481,14 +481,18 @@ func _update_ui() -> void:
 	var focus_text := "Focus" if focus_active else "Baseline"
 
 	if state_label:
-		state_label.text = "%s · %s — %.0f%%" % [focus_text, mode, sensory]
+		var chaos_note := "" if chaos <= 0.01 else " — static %.0f%%" % (chaos * 100.0)
+		state_label.text = "%s · %s%s — %.0f%%" % [focus_text, mode, chaos_note, sensory]
 		_stl_colorblind_safe(mode, state_label, focus_active)
 
 	if meter_bar:
 		meter_bar.value = sensory
 
 	if sensory_label:
-		sensory_label.text = "Sensory Load %.0f" % sensory
+		var chaos_suffix := " — chaos %.0f%%" % (chaos * 100.0)
+		if chaos <= 0.01:
+			chaos_suffix = ""
+		sensory_label.text = "Sensory Load %.0f%s" % [sensory, chaos_suffix]
 
 	if stim_indicator:
 		stim_indicator.visible = stim.holding

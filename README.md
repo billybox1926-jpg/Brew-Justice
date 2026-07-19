@@ -126,9 +126,10 @@ above.
 ### Opt-in disruptor
 
 `scripts/disruptor.gd` is a `Disruptor` node that emits `chaos_pulse(strength)`
-on a randomized interval. It does **nothing** until you add it to the scene and
-connect its `chaos_pulse` signal to `FocusModeMain._on_chaos`. By default the
-room stays a sanctuary.
+on a randomized interval. It is wired into `scenes/focus_mode.tscn` with tuned
+intervals so chaos pulses feel like external disruption instead of constant
+noise. `FocusModeMain` surfaces it on-screen as **static %** and routes it to
+the disruption overlay, peripheries, and audio bus.
 
 ## Live prototype (no build step)
 
