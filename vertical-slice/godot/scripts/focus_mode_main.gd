@@ -538,12 +538,19 @@ func _vignette(strength: float, calm: float = 0.0) -> void:
 	var r := min(size.x, size.y) * (0.55 + eased_strength * 0.3 + calm_glow * 0.04)
 	var edge := size - Vector2(r, r)
 	var alpha := 0.10 + eased_strength * 0.56 - calm_glow * 0.04
-	# Keep the cue non-hue dependent: alpha and aperture still carry the signal,
-	# while a subtle warm edge makes calm feel like the room softening.
-	var g := Color(0.045 + calm_glow * 0.025, 0.035 + calm_glow * 0.02, 0.028, clamp(alpha, 0.06, 0.66))
+	# Keep the cue non-hue dependent: alpha and aperture carry the signal, while
+	# the calm rim is a low-contrast value cue that reads as the room softening.
+	var g := Color(0.035, 0.035, 0.032, clamp(alpha, 0.06, 0.66))
+	var rim := Color(0.92, 0.88, 0.78, calm_glow * 0.08)
 	var xf := max(0.0, edge.x / 2.0)
 	var yf := max(0.0, edge.y / 2.0)
 	draw_rect(Rect2(Vector2(0, 0), Vector2(size.x, yf)), g)
 	draw_rect(Rect2(Vector2(0, (size.y + r) / 2.0), Vector2(size.x, yf)), g)
 	draw_rect(Rect2(Vector2(0, 0), Vector2(xf, size.y)), g)
 	draw_rect(Rect2(Vector2((size.x + r) / 2.0, 0), Vector2(xf, size.y)), g)
+	if calm_glow > 0.0 and xf > 0.0 and yf > 0.0:
+		var rim_width := 2.0 + calm_glow * 3.0
+		draw_rect(Rect2(Vector2(xf - rim_width, yf - rim_width), Vector2(r + rim_width * 2.0, rim_width)), rim)
+		draw_rect(Rect2(Vector2(xf - rim_width, yf + r), Vector2(r + rim_width * 2.0, rim_width)), rim)
+		draw_rect(Rect2(Vector2(xf - rim_width, yf), Vector2(rim_width, r)), rim)
+		draw_rect(Rect2(Vector2(xf + r, yf), Vector2(rim_width, r)), rim)

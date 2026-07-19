@@ -117,7 +117,7 @@ and runtime-light** — no stream files, the bed is synthesized.
 the sensory "smear" graph, the scent/bind trail (`_update_trail`), the vignette
 (`_vignette(1 - peripheries, presence)`), and the clue marker. The vignette
 eases open as `presence` rises, with alpha/aperture changes carrying the signal
-and a subtle warm edge reinforcing calm without relying on hue alone — that's
+and a faint value-based rim reinforcing calm without relying on hue — that's
 the screen-level co-regulation signal. All from `cos`/lerp math; no `Sprite`
 allocations in the loop. The trail density and
 clue alpha are driven by `sensory` mode, not raw polling of unrelated nodes.
