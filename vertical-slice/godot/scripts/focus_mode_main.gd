@@ -4,14 +4,17 @@ class_name FocusModeMain
 signal reset_requested()
 signal investigation_passed()
 signal investigation_blocked()
+signal world_listeners_updated(presence: float)
+signal calm_changed(calm: float)
 
 # === State ===
 var sensory := 18.0
 var focus_active := false
 var elapsed := 0.0
 var peripheries := 1.0
-var presence := 0.0  # rises as the player stims; the room settles with them
-var chaos := 0.0  # sensory static in the room; raised by disruptors, drains over time
+var presence := 0.0
+var presence_target := 0.0
+var chaos := 0.0
 var clue_alpha := 0.25
 var stream_id_requested := false
 
@@ -69,6 +72,8 @@ var target_bandpass_q := 0.6
 @onready var tire_clue: Sprite2D = $SceneView/TireClue
 @onready var disruption_overlay_node: DisruptionOverlay = $DisruptionOverlay
 @onready var disruptor := $Disruptor
+@onready var observer_light := $ObserverLight
+@onready var npc_regular := $NpcRegular
 
 # === Initialization ===
 
@@ -104,6 +109,8 @@ func _ready() -> void:
 	disruption_overlay = disruption_overlay_node
 	if disruptor and disruptor.has_signal("chaos_pulse"):
 		disruptor.chaos_pulse.connect(_on_chaos)
+	if observer_light:
+		observer_light.tuned_in.connect(_on_observer_tuned_in)
 	_update_disruption_overlay()
 
 
@@ -137,7 +144,8 @@ func _notification(what: int) -> void:
 func _process(delta: float) -> void:
 	delta = min(delta, 0.05)
 	elapsed += delta
-	presence = max(presence - delta * (0.15 + chaos * 0.4), 0.0)
+	presence = move_toward(presence, presence_target, delta * 0.6)
+	presence = clamp(presence, 0.0, 1.0)
 	chaos = max(chaos - delta * 0.2, 0.0)
 	stim.chaos = chaos
 	_update_disruption_overlay()
@@ -156,6 +164,7 @@ func _process(delta: float) -> void:
 	_rain(delta)
 	_audio_targets()
 	_lerp_audio(delta)
+	_update_world_listeners(delta)
 	_update_ui()
 	queue_redraw()
 
@@ -247,8 +256,18 @@ func _on_stim_released(strength: float) -> void:
 
 func _on_rhythm_pulse(intensity: float) -> void:
 	# The room leans toward the player's calm — but chaos bleeds the leak.
-	presence = min(presence + intensity * 0.1 * (1.0 - chaos * 0.8), 1.0)
+	presence_target = min(presence_target + intensity * 0.1 * (1.0 - chaos * 0.8), 1.0)
 	_try_advance_investigation_on_pulse()
+
+
+func _update_world_listeners(delta: float) -> void:
+	var calm := smoothstep(0.0, 1.0, presence)
+	world_listeners_updated.emit(presence)
+	calm_changed.emit(calm)
+	if observer_light:
+		observer_light.apply_calm(calm, delta)
+	if npc_regular:
+		npc_regular.apply_presence(presence)
 
 
 func _on_chaos(strength: float) -> void:
