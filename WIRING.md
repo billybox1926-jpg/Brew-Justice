@@ -30,9 +30,9 @@ On `_ready()` it builds the scene graph and audio:
   their signals (`stim_released`, `rhythm_pulse`, `focus_changed`).
 - **Audio**: creates an `SFX` bus at runtime, adds a `LowPassFilter`
   (180 Hz, Q 0.7) and a `HighPassFilter` (1200 Hz, Q 0.5), points
-  `AmbientAudio.bus = "SFX"`, and feeds it a **pink-noise** stream
-  (`_make_noise_stream`, corrected from white in `fe846c6`). No pre-existing bus
-  or effect needs to exist in Project Settings.
+  `AmbientAudio.bus = "SFX"`, and feeds it a synthesized cafe-ambience
+  stream (`_make_cafe_stream`). No pre-existing bus or effect needs to exist
+  in Project Settings.
 - Builds the track, scent/bind trail, rain, and UI nodes.
 
 ## Controls (as wired)
