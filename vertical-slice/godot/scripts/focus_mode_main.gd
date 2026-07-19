@@ -73,6 +73,7 @@ var target_low_q := 0.7
 var target_high_q := 0.5
 var target_bandpass_freq := 1200.0
 var target_bandpass_q := 0.6
+var cafe_stream_cache: AudioStreamWav
 
 # Editor nodes
 @onready var ambient := $AmbientAudio
@@ -123,8 +124,6 @@ func _ready() -> void:
 	disruption_overlay = disruption_overlay_node
 	if disruptor and disruptor.has_signal("chaos_pulse"):
 		disruptor.chaos_pulse.connect(_on_chaos)
-	if observer_light:
-		observer_light.tuned_in.connect(_on_observer_tuned_in)
 	_update_disruption_overlay()
 
 
@@ -547,7 +546,7 @@ func _setup_audio() -> void:
 	AudioServer.add_bus_effect(sfx_bus_idx, bandpass_filter)
 
 	ambient.bus = "SFX"
-	ambient.stream = _make_noise_stream()
+	ambient.stream = _make_cafe_stream()
 	ambient.volume_db = -11
 	ambient.autoplay = true
 	ambient.loop = true
@@ -607,18 +606,25 @@ func _lerp_audio(delta: float) -> void:
 		bandpass_filter.Q = lerp(bandpass_filter.Q, target_bandpass_q, t)
 
 
-func _make_noise_stream() -> AudioStreamWav:
+func _make_cafe_stream() -> AudioStreamWav:
 	var stream := AudioStreamWav.new()
 	stream.mix_rate = 44100
 	stream.stereo = true
 	stream.format = AudioStreamWav.FORMAT_16_BITS
-	var duration := 2.0
+	var duration := 4.0
 	var samples := int(stream.mix_rate * duration)
 	var data := PackedByteArray()
 	data.resize(samples * 4)
-	# Pink noise (Paul Kellet refined) — rolls off the harsh highs white noise has.
 	var b0 := 0.0; var b1 := 0.0; var b2 := 0.0; var b3 := 0.0; var b4 := 0.0; var b5 := 0.0; var b6 := 0.0
+	var clink_timer := 0.0
+	var clink_amp := 0.0
 	for i in range(samples):
+		var t := float(i) / float(stream.mix_rate)
+		# Layer 1: room tone low rumble.
+		var room := 0.18 * sin(TAU * 72.0 * t + 0.3)
+		room += 0.09 * sin(TAU * 111.0 * t - 0.5)
+		room += 0.05 * sin(TAU * 142.0 * t + 1.1)
+		# Layer 2: mid chatter via shaped noise.
 		var white := randf() * 2.0 - 1.0
 		b0 = 0.99886 * b0 + white * 0.0555179
 		b1 = 0.99332 * b1 + white * 0.0750759
@@ -626,9 +632,19 @@ func _make_noise_stream() -> AudioStreamWav:
 		b3 = 0.86650 * b3 + white * 0.3104856
 		b4 = 0.55000 * b4 + white * 0.5329522
 		b5 = -0.7616 * b5 - white * 0.0168980
-		var pink := b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362
+		var pinkish := b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362
 		b6 = white * 0.115926
-		var v := int(clamp(pink * 0.22, -1.0, 1.0) * 32767.0)   # scale to avoid clipping
+		var chatter := pinkish * 0.28
+		# Layer 3: high clinks / movement.
+		clink_timer -= 1.0 / float(stream.mix_rate)
+		if clink_timer <= 0.0:
+			clink_timer = 0.08 + randf() * 0.55
+			clink_amp = 0.05 + randf() * 0.25
+		var env := exp(-max(0.0, -clink_timer) * 14.0)
+		var clink_freq := 2200.0 + randf() * 4200.0
+		var clink := clink_amp * env * sin(TAU * clink_freq * t)
+		var mixed := room + chatter + clink
+		var v := int(clamp(mixed * 0.22, -1.0, 1.0) * 32767.0)
 		data[i * 4 + 0] = v & 0xFF
 		data[i * 4 + 1] = (v >> 8) & 0xFF
 		data[i * 4 + 2] = v & 0xFF
