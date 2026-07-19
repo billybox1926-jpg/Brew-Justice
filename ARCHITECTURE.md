@@ -116,8 +116,10 @@ and runtime-light** — no stream files, the bed is synthesized.
 `FocusModeMain._draw()` paints the whole scene each frame: background, skyline,
 the sensory "smear" graph, the scent/bind trail (`_update_trail`), the vignette
 (`_vignette(1 - peripheries, presence)`), and the clue marker. The vignette
-widens as `presence` rises — that's the screen-level co-regulation signal. All
-from `cos`/lerp math; no `Sprite` allocations in the loop. The trail density and
+eases open as `presence` rises, with alpha/aperture changes carrying the signal
+and a subtle warm edge reinforcing calm without relying on hue alone — that's
+the screen-level co-regulation signal. All from `cos`/lerp math; no `Sprite`
+allocations in the loop. The trail density and
 clue alpha are driven by `sensory` mode, not raw polling of unrelated nodes.
 
 ## Why this shape

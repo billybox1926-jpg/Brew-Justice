@@ -529,11 +529,18 @@ func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
 # === Helpers ===
 
 func _vignette(strength: float, calm: float = 0.0) -> void:
-	strength = max(strength - calm * 0.5, 0.0)
+	# Presence should read as co-regulation: each steady rhythm pulse opens the
+	# periphery instead of letting chaos collapse into a harsh tunnel.
+	var regulated_strength := clamp(strength - calm * 0.7, 0.0, 1.0)
+	var eased_strength := ease(regulated_strength, 0.5)
+	var calm_glow := clamp(calm, 0.0, 1.0)
 	var size := get_rect().size
-	var r := min(size.x, size.y) * (0.6 + strength * 0.25)
+	var r := min(size.x, size.y) * (0.55 + eased_strength * 0.3 + calm_glow * 0.04)
 	var edge := size - Vector2(r, r)
-	var g := Color(0, 0, 0, 0.12 + strength * 0.62)
+	var alpha := 0.10 + eased_strength * 0.56 - calm_glow * 0.04
+	# Keep the cue non-hue dependent: alpha and aperture still carry the signal,
+	# while a subtle warm edge makes calm feel like the room softening.
+	var g := Color(0.045 + calm_glow * 0.025, 0.035 + calm_glow * 0.02, 0.028, clamp(alpha, 0.06, 0.66))
 	var xf := max(0.0, edge.x / 2.0)
 	var yf := max(0.0, edge.y / 2.0)
 	draw_rect(Rect2(Vector2(0, 0), Vector2(size.x, yf)), g)
