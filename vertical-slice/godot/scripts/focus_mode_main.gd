@@ -49,10 +49,13 @@ var audio_ready := false
 var sfx_bus_idx := -1
 var low_filter: AudioEffectLowPassFilter
 var high_filter: AudioEffectHighPassFilter
+var bandpass_filter: AudioEffectBandPassFilter
 var target_low_cutoff := 180.0
 var target_high_cutoff := 1200.0
 var target_low_q := 0.7
 var target_high_q := 0.5
+var target_bandpass_freq := 1200.0
+var target_bandpass_q := 0.6
 
 # Editor nodes
 @onready var ambient := $AmbientAudio
@@ -448,6 +451,12 @@ func _setup_audio() -> void:
 	high_filter.resonance = 0.5
 	AudioServer.add_bus_effect(sfx_bus_idx, high_filter)
 
+	bandpass_filter = AudioEffectBandPassFilter.new()
+	bandpass_filter.frequency = target_bandpass_freq
+	bandpass_filter.gain = 0.0
+	bandpass_filter.Q = target_bandpass_q
+	AudioServer.add_bus_effect(sfx_bus_idx, bandpass_filter)
+
 	ambient.bus = "SFX"
 	ambient.stream = _make_noise_stream()
 	ambient.volume_db = -11
@@ -483,6 +492,16 @@ func _audio_targets() -> void:
 		target_high_q = 0.5
 		target_low_q = 0.7
 
+	if investigation_phase == InvestigationPhase.TuneIn and investigation_emitted:
+		target_bandpass_freq = 980.0
+		target_bandpass_q = 1.1
+	elif focus_active:
+		target_bandpass_freq = 820.0
+		target_bandpass_q = 0.9
+	else:
+		target_bandpass_freq = 1200.0
+		target_bandpass_q = 0.6
+
 
 func _lerp_audio(delta: float) -> void:
 	if not audio_ready:
@@ -494,6 +513,9 @@ func _lerp_audio(delta: float) -> void:
 	if high_filter:
 		high_filter.cutoff_hz = lerp(high_filter.cutoff_hz, target_high_cutoff, t)
 		high_filter.resonance = lerp(high_filter.resonance, target_high_q, t)
+	if bandpass_filter:
+		bandpass_filter.frequency = lerp(bandpass_filter.frequency, target_bandpass_freq, t)
+		bandpass_filter.Q = lerp(bandpass_filter.Q, target_bandpass_q, t)
 
 
 func _make_noise_stream() -> AudioStreamWav:
