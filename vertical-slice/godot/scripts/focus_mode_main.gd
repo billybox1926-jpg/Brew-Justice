@@ -131,8 +131,12 @@ func _ready() -> void:
 	_setup_investigation_ui()
 	_setup_sensory_crime_loop()
 	disruption_overlay = disruption_overlay_node
-	if disruptor and disruptor.has_signal("chaos_pulse"):
-		disruptor.chaos_pulse.connect(_on_chaos)
+	if disruptor:
+		if disruptor.has_signal("chaos_pulse_rich"):
+			disruptor.chaos_pulse_rich.connect(_on_chaos_rich)
+		elif disruptor.has_signal("chaos_pulse"):
+			disruptor.chaos_pulse.connect(_on_chaos)
+	_apply_antagonist_lore(disruptor)
 
 	build_track()
 	build_trail()
@@ -364,9 +368,27 @@ func _on_chaos(strength: float) -> void:
 	_try_advance_investigation_on_chaos(strength)
 
 
+func _on_chaos_rich(strength: float, duration: float, band: String) -> void:
+	_on_chaos(strength)
+	_apply_antagonist_lore_for(band)
+
+
 func _update_disruption_overlay() -> void:
 	if disruption_overlay:
 		disruption_overlay.chaos = chaos
+
+
+func _apply_antagonist_lore(disruptor_node: Disruptor) -> void:
+	if not disruptor_node or not disruptor_node.variant:
+		return
+	var text := disruptor_node.variant.lore_text
+	if text == "":
+		return
+	print("[Lore] %s" % text)
+
+
+func _apply_antagonist_lore_for(band: String) -> void:
+	print("[Lore] Unidentified %s-band disruption." % band)
 
 
 func _setup_evidence_board() -> void:

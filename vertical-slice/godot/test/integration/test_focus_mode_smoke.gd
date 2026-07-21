@@ -383,3 +383,36 @@ func test_vignette_calculation_constants_present() -> void:
 	var calm_color := canvas._get_vignette_color(canvas._get_vignette_strength(0.0, 0.0, 1.0), 1.0)
 	var chaos_color := canvas._get_vignette_color(canvas._get_vignette_strength(0.0, 1.0, 0.0), 0.0)
 	assert_true(chaos_color.a >= calm_color.a, "Chaos should make vignette more visible")
+
+
+func test_disruptor_auto_fire_default_false() -> void:
+	var disruptor_node = Disruptor.new()
+	add_child_autofree(disruptor_node)
+	assert_false(disruptor_node.auto_fire, "Review feedback: auto_fire should default to false")
+	assert_false(disruptor_node.is_active(), "Disruptor should not start automatically when auto_fire is false")
+
+
+func test_disruptor_missing_variant_does_not_crash() -> void:
+	var disruptor_node = Disruptor.new()
+	add_child_autofree(disruptor_node)
+	disruptor_node.trigger_pulse()
+	assert_false(disruptor_node.has_signal("chaos_pulse"), "No signal should exist; trigger_pulse should no-op when variant is absent")
+
+
+func test_disruptor_variant_emits_chaos_pulse() -> void:
+	var disruptor_node = Disruptor.new()
+	add_child_autofree(disruptor_node)
+	var variant = DisruptorVariant.new()
+	variant.intensity = 0.9
+	variant.duration = 0.5
+	variant.auditory_band = "mid"
+	variant.lore_text = "Test lore"
+	disruptor_node.variant = variant
+
+	var strengths = []
+	disruptor_node.chaos_pulse.connect(func(value: float) -> void:
+		strengths.append(value)
+	)
+	disruptor_node.trigger_pulse()
+	assert_eq(strengths.size(), 1, "chaos_pulse should emit once when trigger_pulse is called")
+	assert_almost_eq(strengths[0], 0.9, 0.01, "chaos_pulse intensity should match variant")
