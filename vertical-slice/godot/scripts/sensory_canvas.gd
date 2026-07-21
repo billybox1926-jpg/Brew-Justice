@@ -14,7 +14,9 @@ const VIGNETTE_CALM_WARMTH: float = 0.2
 const VIGNETTE_CHAOS_TINT: Color = Color(0.18, 0.08, 0.04)
 const VIGNETTE_CHAOS_DRIVER: float = 0.35
 const VIGNETTE_CALM_DRIVER: float = 0.04
-const VIGNETTE_EASE: float = 0.55
+const VIGNETTE_EASE: float = 0.65
+const VIGNETTE_EDGE_TINT: Color = Color(0.55, 0.7, 0.95)
+const VIGNETTE_EDGE_TINT_STRENGTH: float = 0.35
 
 @export var vignette_color: Color = Color(0.05, 0.03, 0.02)
 @export var trail_color: Color = Color(0.82, 0.62, 0.18)
@@ -61,10 +63,15 @@ func _draw_vignette() -> void:
 	var radius := min(size.x, size.y) * (VIGNETTE_BASE_FRAC + eased * VIGNETTE_RADIUS_SPAN)
 	var col := _get_vignette_color(eased, calm)
 
-	draw_rect(Rect2(0, 0, size.x, size.y - radius), col)
-	draw_rect(Rect2(0, 0, size.x - radius, size.y), col)
-	draw_rect(Rect2(radius, 0, size.x - radius, size.y), col)
-	draw_rect(Rect2(0, radius, size.x, size.y - radius), col)
+	var band := max(24.0, min(size.x, size.y) * (0.08 + eased * 0.12))
+	var inner := Rect2(band, band, size.x - band * 2.0, size.y - band * 2.0)
+	var outer_alpha := col.a * (1.0 - eased * 0.55)
+	draw_rect(Rect2(0, 0, size.x, band), Color(col.r, col.g, col.b, outer_alpha))
+	draw_rect(Rect2(0, size.y - band, size.x, band), Color(col.r, col.g, col.b, outer_alpha))
+	draw_rect(Rect2(0, 0, band, size.y), Color(col.r, col.g, col.b, outer_alpha))
+	draw_rect(Rect2(size.x - band, 0, band, size.y), Color(col.r, col.g, col.b, outer_alpha))
+	if inner.size.x > 0 and inner.size.y > 0:
+		draw_rect(inner, Color(0, 0, 0, 0))
 
 
 func _draw_trail(points: PackedVector2Array, col: Color, width: float) -> void:
