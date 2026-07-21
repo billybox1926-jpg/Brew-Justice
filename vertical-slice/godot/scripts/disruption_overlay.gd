@@ -10,6 +10,11 @@ class_name DisruptionOverlay
 @export var core_threshold := 0.55
 @export var core_alpha_scale := 0.32
 
+const EDGE_ALPHA_BASE := 0.35
+const EDGE_ALPHA_DRIVE := 0.65
+const CORE_LINE_SCALE := 0.5
+const CORE_LINE_MIN := 1.0
+
 var chaos := 0.0:
 	set(value):
 		chaos = clamp(value, 0.0, 1.0)
@@ -39,20 +44,16 @@ func _draw() -> void:
 	var size := get_rect().size
 	var flicker := sin(_flicker_time * 1.7) * cos(_flicker_time * 0.73)
 	var y_offset := flicker * max_jitter_pixels * chaos
-	var edge_alpha := neon_color.a * (0.35 + abs(flicker) * 0.65) * chaos
+	var edge_alpha := neon_color.a * (EDGE_ALPHA_BASE + abs(flicker) * EDGE_ALPHA_DRIVE) * chaos
 	var edge_color := neon_color
-	# Keep a tiny alpha floor so low chaos still reads as an edge instead of
-	# disappearing between jitter samples. Designers can tune this per scene.
 	edge_color.a = clamp(edge_alpha, minimum_edge_alpha, neon_color.a)
 
-	# Offset the line geometry by the flicker value so the disruption feels
-	# physically unstable instead of reading as static-y alpha blinking.
 	draw_line(Vector2(0.0, y_offset), Vector2(size.x, y_offset), edge_color, line_thickness)
 
 	if chaos > core_threshold:
 		var core_color := Color.WHITE
 		core_color.a = (chaos - core_threshold) * core_alpha_scale
-		draw_line(Vector2(0.0, y_offset * 0.45), Vector2(size.x, y_offset * 0.45), core_color, max(line_thickness * 0.5, 1.0))
+		draw_line(Vector2(0.0, y_offset * 0.45), Vector2(size.x, y_offset * 0.45), core_color, max(line_thickness * CORE_LINE_SCALE, CORE_LINE_MIN))
 
 
 func _update_sleep_state() -> void:

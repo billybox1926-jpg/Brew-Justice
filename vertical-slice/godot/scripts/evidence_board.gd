@@ -4,10 +4,10 @@ class_name EvidenceBoard
 signal deduction_progress(progress: float, insight_text: String)
 signal contradiction_detected(clue_a: String, clue_b: String)
 
-var _clue_states: Dictionary = {}   # clue_id -> float
-var _graph: Dictionary = {}         # clue_id -> ClueData
-var _combination_threshold := 0.8
-var _contradiction_threshold := 0.5
+var _clue_states: Dictionary = {}
+var _graph: Dictionary = {}
+const COMBINATION_THRESHOLD := 0.8
+const CONTRADICTION_THRESHOLD := 0.5
 
 
 func register_clue(clue_data: ClueData, resolver: ClueResolver) -> void:
@@ -35,7 +35,7 @@ func _evaluate_graph() -> void:
 
 		for id_b in data_a.combines_with:
 			var clarity_b := _clue_states.get(id_b, 0.0)
-			if clarity_a > _combination_threshold and clarity_b > _combination_threshold:
+			if clarity_a > COMBINATION_THRESHOLD and clarity_b > COMBINATION_THRESHOLD:
 				var name_b := _graph[id_b].clue_name if _graph.has(id_b) else id_b
 				insights.append("Combined: %s + %s" % [data_a.clue_name, name_b])
 				total_progress += 1.0

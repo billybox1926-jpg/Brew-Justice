@@ -39,6 +39,11 @@ var stream_id_requested := false
 
 # Investigation beat
 enum InvestigationPhase { Observe, TuneIn, Resolve, Resolved }
+const FOCUS_TEXT_INACTIVE := "Baseline"
+const FOCUS_TEXT_ACTIVE := "Focus"
+const METER_MODE_BASELINE := "Baseline"
+const METER_MODE_HYPERFOCUS := "Hyperfocus"
+const METER_MODE_OVERLOAD := "Overload"
 var investigation_phase := InvestigationPhase.Observe
 var investigation_cooldown := 0.0
 var investigation_clue_idx := 0
@@ -519,7 +524,7 @@ func _setup_ui() -> void:
 func _update_ui() -> void:
 	sensory = clamp(meter.sensory, 0.0, 100.0)
 	var mode := meter.mode_name()
-	var focus_text := "Focus" if focus_active else "Baseline"
+	var focus_text := FOCUS_TEXT_ACTIVE if focus_active else FOCUS_TEXT_INACTIVE
 	if state_label:
 		var chaos_note := "" if chaos <= 0.01 else " — static %.0f%%" % (chaos * 100.0)
 		state_label.text = "%s · %s%s — %.0f%%" % [focus_text, mode, chaos_note, sensory]
@@ -542,13 +547,13 @@ func _update_ui() -> void:
 			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, 0.98, get_process_delta_time() * 5.0)
 		else:
 			var clue_target := 0.18
-			if focus_active or mode != "Baseline":
-				clue_target = 0.8 if mode == "Overload" else 0.72
+			if focus_active or mode != METER_MODE_BASELINE:
+				clue_target = 0.8 if mode == METER_MODE_OVERLOAD else 0.72
 			if stream_id_requested:
 				clue_target = maxf(clue_target, 0.95)
 			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, clue_target, get_process_delta_time() * 4.0)
 	if tire_smudge:
-		var smudge_target := 0.08 if focus_active or mode != "Baseline" else 0.75
+		var smudge_target := 0.08 if focus_active or mode != METER_MODE_BASELINE else 0.75
 		tire_smudge.modulate.a = move_toward(tire_smudge.modulate.a, smudge_target, get_process_delta_time() * 5.0)
 
 
@@ -559,10 +564,10 @@ func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
 		label.text = "%s · %s — %.0f%%" % ["FOCUS", mode, sensory]
 	else:
 		label.add_theme_font_size_override("font_size", 14)
-		label.text = "%s · %s — %0.f%%" % ["Baseline", mode, sensory]
-		if mode == "Baseline":
+		label.text = "%s · %s — %0.f%%" % [FOCUS_TEXT_INACTIVE, mode, sensory]
+		if mode == METER_MODE_BASELINE:
 			label.add_theme_color_override("font_color", Color(0.518, 0.506, 0.471))
-		elif mode == "Hyperfocus":
+		elif mode == METER_MODE_HYPERFOCUS:
 			label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.2))
 		else:
 			label.add_theme_color_override("font_color", Color(0.96, 0.27, 0.24))
