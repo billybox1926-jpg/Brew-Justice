@@ -501,3 +501,53 @@ func test_story_beat_applies_variant_on_start() -> void:
 
 	beat.on_phase_changed(0, 1)
 	assert_eq(d.variant.variant_name, "transformer_hum", "StoryBeat should assign variant on start")
+
+
+func test_clue_graph_register_and_clarity() -> void:
+	var graph = ClueGraph.new()
+	add_child_autofree(graph)
+	var data = ClueData.new()
+	data.clue_id = "smudge_pattern"
+	data.clue_name = "Tread Pattern"
+	data.presence_threshold = 0.7
+	graph.register_clue(data)
+	assert_true(graph.get_clue("smudge_pattern") != null, "ClueGraph should store registered clue")
+	graph.set_clarity("smudge_pattern", 0.2)
+	assert_almost_eq(graph.get_clarity("smudge_pattern"), 0.2, 0.01, "ClueGraph should persist clarity")
+
+
+func test_clue_graph_resolve_locks_clue() -> void:
+	var graph = ClueGraph.new()
+	add_child_autofree(graph)
+	var data = ClueData.new()
+	data.clue_id = "smudge_pattern"
+	data.leads_to = ["neon_symbol"]
+	graph.register_clue(data)
+	graph.set_clarity("smudge_pattern", 1.0)
+	var unlocked_ids: Array[String] = []
+	graph.clue_unlocked.connect(func(from_clue: String, ids: Array[String]) -> void:
+		unlocked_ids = ids
+	)
+	graph.resolve_clue("smudge_pattern")
+	assert_true(unlocked_ids.has("neon_symbol"), "Resolving a clue should unlock leads_to")
+
+
+func test_evidence_board_bridges_to_clue_graph() -> void:
+	var board = EvidenceBoard.new()
+	add_child_autofree(board)
+	var graph = ClueGraph.new()
+	add_child_autofree(graph)
+	board.graph_progression_requested.connect(func(id: String) -> void:
+		graph.resolve_clue(id)
+	)
+	var data = ClueData.new()
+	data.clue_id = "bridge_test"
+	data.leads_to = ["next_clue"]
+	board.resolve_clue("bridge_test")
+	assert_eq(graph.total_unlocked, 1, "EvidenceBoard bridge should resolve clue in ClueGraph")
+
+
+func test_focus_mode_main_sets_up_clue_graph() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	assert_true(main.has_node("ClueGraph"), "FocusModeMain should create ClueGraph during setup")

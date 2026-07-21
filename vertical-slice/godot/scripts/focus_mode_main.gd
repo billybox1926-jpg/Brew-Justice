@@ -20,6 +20,7 @@ var npc_regular: NpcRegular
 var smudge_resolver: SmudgeResolver
 var neon_clue: NeonClue
 var evidence_board: EvidenceBoard
+var evidence_graph: ClueGraph
 var investigation_beat: InvestigationBeat
 var investigation_ui: InvestigationUI
 var sensory_crime_loop: SensoryCrimeLoop
@@ -419,20 +420,67 @@ func _setup_evidence_board() -> void:
 	evidence_board = EvidenceBoard.new()
 	evidence_board.name = "EvidenceBoard"
 	add_child(evidence_board)
-	if smudge_resolver:
-		evidence_board.register_clue(smudge_resolver.clue_data, smudge_resolver)
-	if neon_clue:
-		evidence_board.register_clue(neon_clue.clue_data, neon_clue)
+	evidence_graph = ClueGraph.new()
+	evidence_graph.name = "ClueGraph"
+	add_child(evidence_graph)
+	_setup_graph_from_resolvers()
 	evidence_board.deduction_progress.connect(_on_deduction_progress)
 	evidence_board.contradiction_detected.connect(_on_contradiction_detected)
+	_attach_graph_progress_signals()
+
+
+func _setup_graph_from_resolvers() -> void:
+	var resolvers := {}
+	if smudge_resolver and smudge_resolver.clue_data:
+		resolvers[smudge_resolver.clue_data.clue_id] = smudge_resolver
+	if neon_clue and neon_clue.clue_data:
+		resolvers[neon_clue.clue_data.clue_id] = neon_clue
+	for key in resolvers:
+		var resolver := resolvers[key] as ClueResolver
+		evidence_board.register_clue(resolver.clue_data, resolver)
+		evidence_graph.register_clue(resolver.clue_data)
+		resolver.clarity_changed.connect(func(clue_id: String, clarity: float) -> void:
+			evidence_graph.set_clarity(clue_id, clarity)
+		)
+
+
+func _attach_graph_progress_signals() -> void:
+	if not evidence_graph:
+		return
+	evidence_graph.graph_progressed.connect(_on_graph_progressed)
+	evidence_graph.clue_unlocked.connect(_on_graph_clue_unlocked)
+	evidence_graph.clue_registered.connect(_on_graph_clue_registered)
+	if evidence_board:
+		evidence_board.graph_progression_requested.connect(_on_board_graph_progression_requested)
+
+
+func _on_board_graph_progression_requested(clue_id: String) -> void:
+	if not evidence_graph:
+		return
+	if clue_id.begins_with("__deduction_progress__"):
+		evidence_graph._recalculate()
+		return
+	evidence_graph.resolve_clue(clue_id)
 
 
 func _on_deduction_progress(progress: float, insight_text: String) -> void:
-	deduction_updated.emit(progress, insight_text)
+	pass
 
 
 func _on_contradiction_detected(clue_a: String, clue_b: String) -> void:
-	contradiction_noted.emit(clue_a, clue_b)
+	pass
+
+
+func _on_graph_progressed(progress: float, insights: Array[String]) -> void:
+	pass
+
+
+func _on_graph_clue_unlocked(from_clue: String, unlocked_ids: Array[String]) -> void:
+	pass
+
+
+func _on_graph_clue_registered(clue_id: String) -> void:
+	pass
 
 
 func _setup_investigation_beat() -> void:

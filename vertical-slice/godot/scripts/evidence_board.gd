@@ -3,6 +3,7 @@ class_name EvidenceBoard
 
 signal deduction_progress(progress: float, insight_text: String)
 signal contradiction_detected(clue_a: String, clue_b: String)
+signal graph_progression_requested(clue_id: String)
 
 var _clue_states: Dictionary = {}
 var _graph: Dictionary = {}
@@ -55,3 +56,7 @@ func _evaluate_graph() -> void:
 	var divisor := float(_graph.size() + insights.size())
 	var progress := clamp(total_progress / (divisor if divisor > 0.0 else 1.0), 0.0, 1.0)
 	deduction_progress.emit(progress, "\n".join(insights))
+
+
+func resolve_clue(clue_id: String) -> void:
+	graph_progression_requested.emit(clue_id)
