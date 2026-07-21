@@ -20,9 +20,13 @@ const MODE_BASELINE := "Baseline"
 const MODE_HYPERFOCUS := "Hyperfocus"
 const MODE_OVERLOAD := "Overload"
 
+## Noise floor / maximum load for sanity validation.
+const MIN_SENSORY := 0.0
+const MAX_SENSORY := 100.0
+
 
 func set_load(value: float) -> void:
-	var new_val := float(clamp(value, 0.0, 100.0))
+	var new_val := float(clamp(value, MIN_SENSORY, MAX_SENSORY))
 	if sensory == new_val:
 		return
 	sensory = new_val

@@ -8,6 +8,39 @@ const GLIDE_SPEED: float = 2.0
 const DEFAULT_CUTOFF: float = 20000.0
 const DEFAULT_RESONANCE: float = 0.5
 const SFX_BUS_NAME := "SFX"
+## Tune-in narrows a mid-frequency bandpass for clarity.
+const BASELINE_BAND_CUTOFF: float = 1200.0
+const BASELINE_BAND_Q: float = 0.6
+const TUNE_BAND_CUTOFF: float = 980.0
+const TUNE_BAND_Q: float = 1.1
+const FOCUS_BAND_CUTOFF: float = 820.0
+const FOCUS_BAND_Q: float = 0.9
+## Reverb / ambiance tap for filtered room feel.
+const BASELINE_LOW_CUTOFF: float = 180.0
+const BASELINE_LOW_Q: float = 0.7
+const BASELINE_HIGH_CUTOFF: float = 1200.0
+const BASELINE_HIGH_Q: float = 0.5
+const HYPERFOCUS_LOW_CUTOFF: float = 230.0
+const HYPERFOCUS_HIGH_CUTOFF: float = 640.0
+const OVERLOAD_LOW_CUTOFF: float = 280.0
+const OVERLOAD_LOW_Q: float = 1.4
+const OVERLOAD_HIGH_CUTOFF: float = 2800.0
+const OVERLOAD_HIGH_Q: float = 7.0
+## Stim hold shifts the window inward for tactile clarity.
+const STIM_LOW_CUTOFF_SHIFT: float = 90.0
+const STIM_LOW_CUTOFF_MIN: float = 80.0
+const STIM_LOW_CUTOFF_MAX: float = 480.0
+const STIM_HIGH_CUTOFF_SHIFT: float = 500.0
+const STIM_HIGH_CUTOFF_MIN: float = 420.0
+const STIM_HIGH_CUTOFF_MAX: float = 1400.0
+const STIM_HIGH_Q_DEFAULT: float = 0.5
+const STIM_LOW_Q_DEFAULT: float = 0.7
+## Cafe generator acoustics.
+const CAFE_MIX_RATE: int = 44100
+const CAFE_ROOM_MIX: float = 0.24
+const CAFE_CHATTER_DRIVE: float = 0.42
+const CAFE_CLINK_DECAY_RATE: float = 22.0
+const CAFE_CHATTER_STEP: float = 0.008
 
 var _effects := {}
 var _cafe_player: AudioStreamPlayer
@@ -43,24 +76,24 @@ func _setup_audio_bus() -> void:
 	_effects["lowpass"] = _find_effect_by_name(sfx_idx, "LowPassFilter")
 	if not _effects["lowpass"]:
 		var fx := AudioEffectLowPassFilter.new()
-		fx.cutoff_hz = 180.0
-		fx.resonance = 0.7
+		fx.cutoff_hz = BASELINE_LOW_CUTOFF
+		fx.resonance = BASELINE_LOW_Q
 		AudioServer.add_bus_effect(sfx_idx, fx)
 		_effects["lowpass"] = _find_effect_by_name(sfx_idx, "LowPassFilter")
 
 	_effects["highpass"] = _find_effect_by_name(sfx_idx, "HighPassFilter")
 	if not _effects["highpass"]:
 		var fx := AudioEffectHighPassFilter.new()
-		fx.cutoff_hz = 1200.0
-		fx.resonance = 0.5
+		fx.cutoff_hz = BASELINE_HIGH_CUTOFF
+		fx.resonance = BASELINE_HIGH_Q
 		AudioServer.add_bus_effect(sfx_idx, fx)
 		_effects["highpass"] = _find_effect_by_name(sfx_idx, "HighPassFilter")
 
 	_effects["bandpass"] = _find_effect_by_name(sfx_idx, "BandPassFilter")
 	if not _effects["bandpass"]:
 		var fx := AudioEffectBandPassFilter.new()
-		fx.cutoff_hz = 1200.0
-		fx.Q = 0.6
+		fx.cutoff_hz = BASELINE_BAND_CUTOFF
+		fx.Q = BASELINE_BAND_Q
 		AudioServer.add_bus_effect(sfx_idx, fx)
 		_effects["bandpass"] = _find_effect_by_name(sfx_idx, "BandPassFilter")
 
