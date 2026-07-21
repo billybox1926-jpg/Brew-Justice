@@ -551,3 +551,48 @@ func test_focus_mode_main_sets_up_clue_graph() -> void:
 	var scene = load("res://scenes/focus_mode.tscn").instantiate()
 	var main = scene
 	assert_true(main.has_node("ClueGraph"), "FocusModeMain should create ClueGraph during setup")
+
+
+func test_disruptor_profile_activated_signal() -> void:
+	var d = Disruptor.new()
+	add_child_autofree(d)
+	var profile = DisruptorProfile.new()
+	profile.id = "static_junkie"
+	profile.display_name = "Static Junkie"
+	profile.chaos_style = "pulse"
+	d.profile = profile
+	var emitted = []
+	d.profile_activated.connect(func(p: DisruptorProfile) -> void:
+		emitted.append(p)
+	)
+	d._ready()
+	assert_eq(emitted.size(), 1, "Disruptor should emit profile_activated on ready when profile is assigned")
+	assert_eq(emitted[0].id, "static_junkie")
+
+
+func test_disruptor_profile_styles_change_pulse_strength() -> void:
+	var d = Disruptor.new()
+	add_child_autofree(d)
+	var variant = DisruptorVariant.new()
+	variant.intensity = 1.0
+	d.variant = variant
+
+	var profile = DisruptorProfile.new()
+	profile.chaos_style = "burst"
+	d.profile = profile
+	d._ready()
+	var burst_strength = d._next_pulse_strength
+
+	profile.chaos_style = "drift"
+	d.set_profile(profile)
+	var drift_strength = d._next_pulse_strength
+	assert_true(burst_strength > drift_strength, "Burst profile should pulse stronger than drift")
+
+
+func test_focus_mode_main_assigns_disruptor_profile() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var d = main.get_node("Disruptor")
+	assert_not_null(d, "Disruptor should exist in focus_mode scene")
+	assert_true(d.profile != null, "FocusModeMain should assign a DisruptorProfile to the disruptor")
+	assert_eq(d.profile.id, "static_junkie", "Overload beat should assign Static Junkie profile")

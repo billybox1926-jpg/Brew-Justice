@@ -173,6 +173,16 @@ func _setup_story_beat_overload() -> void:
 	transformer_variant.auditory_band = "low"
 	transformer_variant.lore_fragment = "A distant transformer hums through the wall."
 	story_beat_overload.variant_on_start = transformer_variant
+	if disruptor and disruptor.has_method("set_profile"):
+		var static_junkie = DisruptorProfile.new()
+		static_junkie.id = "static_junkie"
+		static_junkie.display_name = "Static Junkie"
+		static_junkie.description = "Sharp, erratic pulses."
+		static_junkie.chaos_style = "pulse"
+		static_junkie.base_chaos_rate = 0.9
+		static_junkie.chaos_variance = 0.1
+		static_junkie.color = Color(1.0, 0.3, 0.3)
+		disruptor.profile = static_junkie
 	add_child(story_beat_overload)
 	if sensory_crime_loop.has_signal("phase_changed"):
 		sensory_crime_loop.phase_changed.connect(story_beat_overload.on_phase_changed)
