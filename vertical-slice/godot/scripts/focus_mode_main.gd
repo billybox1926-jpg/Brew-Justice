@@ -20,7 +20,6 @@ var npc_regular: NpcRegular
 var smudge_resolver: SmudgeResolver
 var neon_clue: NeonClue
 var evidence_board: EvidenceBoard
-var evidence_graph: ClueGraph
 var investigation_beat: InvestigationBeat
 var investigation_ui: InvestigationUI
 var sensory_crime_loop: SensoryCrimeLoop
@@ -51,6 +50,7 @@ var investigation_cooldown := 0.0
 var investigation_clue_idx := 0
 var investigation_emitted := false
 var investigation_resolve_duration := 0.0
+var active_clue_id: String = ""
 func INVESTIGATION_COOLDOWN() -> float: return 3.0
 func INVESTIGATION_RESOLVE_TIME() -> float: return 1.2
 
@@ -181,6 +181,8 @@ func _setup_story_beat_overload() -> void:
 func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
 	if state_label:
 		state_label.text = _focus_mode_phase_label(to)
+	if to == SensoryCrimeLoop.Phase.TUNE_IN:
+		_start_next_clue()
 
 
 func _focus_mode_phase_label(phase: int) -> String:
@@ -294,41 +296,59 @@ func _peripheral_state() -> void:
 		clue_alpha = lerp(clue_alpha, 0.22, get_process_delta_time() * 3.0)
 
 	if investigation_cooldown <= 0.0 and investigation_phase == InvestigationPhase.Observe:
+		active_clue_id = ""
 		investigation_phase = InvestigationPhase.TuneIn
 		investigation_clue_idx = 0
 		investigation_emitted = false
 		_reset_investigation_visuals()
 
 
-func _try_advance_investigation_on_pulse() -> void:
-	if not focus_active:
-		return
-	if investigation_phase == InvestigationPhase.TuneIn:
-		investigation_clue_idx += 1
-	if investigation_clue_idx >= 4:
-		investigation_emitted = true
-
-
-func _try_advance_investigation_on_chaos(strength: float) -> void:
-	if investigation_phase == InvestigationPhase.TuneIn and strength <= 0.25:
-		investigation_clue_idx = max(investigation_clue_idx - 1, 0)
-		investigation_emitted = false
-
-
 func _try_resolve_investigation() -> void:
 	if investigation_phase != InvestigationPhase.TuneIn or not investigation_emitted:
 		return
+	if evidence_graph and active_clue_id != "":
+		evidence_graph.resolve_clue(active_clue_id)
+		active_clue_id = ""
 	investigation_phase = InvestigationPhase.Resolved
 	investigation_resolve_duration = INVESTIGATION_RESOLVE_TIME()
 	investigation_passed.emit()
 	focus_active = false
 
 
-func _update_investigation(delta: float) -> void:
-	if investigation_phase == InvestigationPhase.Resolved and investigation_resolve_duration > 0.0:
-		investigation_resolve_duration = max(investigation_resolve_duration - delta, 0.0)
-		if investigation_resolve_duration <= 0.0:
-			_reset_investigation()
+func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
+	if state_label:
+		state_label.text = _focus_mode_phase_label(to)
+	if to == SensoryCrimeLoop.Phase.OBSERVE:
+		active_clue_id = ""
+	elif to == SensoryCrimeLoop.Phase.TUNE_IN:
+		_active_clue_if_any()
+
+
+func _active_clue_if_any() -> void:
+	if evidence_graph:
+		return
+	for id in evidence_graph.clues:
+		var c := evidence_graph.clues[id] as ClueGraph.Clue
+		if c and not c.unlocked:
+			active_clue_id = id
+			break
+
+
+func _focus_mode_phase_label(phase: int) -> String:
+	match phase:
+		SensoryCrimeLoop.Phase.OBSERVE:
+			return "Observe"
+		SensoryCrimeLoop.Phase.OVERLOAD:
+			return "Overload"
+		SensoryCrimeLoop.Phase.STIM:
+			return "Stim"
+		SensoryCrimeLoop.Phase.TUNE_IN:
+			return "Tune-in"
+		SensoryCrimeLoop.Phase.RESOLVE:
+			return "Resolve"
+		_:
+			return ""
+
 
 
 func _reset_investigation() -> void:
@@ -420,67 +440,20 @@ func _setup_evidence_board() -> void:
 	evidence_board = EvidenceBoard.new()
 	evidence_board.name = "EvidenceBoard"
 	add_child(evidence_board)
-	evidence_graph = ClueGraph.new()
-	evidence_graph.name = "ClueGraph"
-	add_child(evidence_graph)
-	_setup_graph_from_resolvers()
+	if smudge_resolver:
+		evidence_board.register_clue(smudge_resolver.clue_data, smudge_resolver)
+	if neon_clue:
+		evidence_board.register_clue(neon_clue.clue_data, neon_clue)
 	evidence_board.deduction_progress.connect(_on_deduction_progress)
 	evidence_board.contradiction_detected.connect(_on_contradiction_detected)
-	_attach_graph_progress_signals()
-
-
-func _setup_graph_from_resolvers() -> void:
-	var resolvers := {}
-	if smudge_resolver and smudge_resolver.clue_data:
-		resolvers[smudge_resolver.clue_data.clue_id] = smudge_resolver
-	if neon_clue and neon_clue.clue_data:
-		resolvers[neon_clue.clue_data.clue_id] = neon_clue
-	for key in resolvers:
-		var resolver := resolvers[key] as ClueResolver
-		evidence_board.register_clue(resolver.clue_data, resolver)
-		evidence_graph.register_clue(resolver.clue_data)
-		resolver.clarity_changed.connect(func(clue_id: String, clarity: float) -> void:
-			evidence_graph.set_clarity(clue_id, clarity)
-		)
-
-
-func _attach_graph_progress_signals() -> void:
-	if not evidence_graph:
-		return
-	evidence_graph.graph_progressed.connect(_on_graph_progressed)
-	evidence_graph.clue_unlocked.connect(_on_graph_clue_unlocked)
-	evidence_graph.clue_registered.connect(_on_graph_clue_registered)
-	if evidence_board:
-		evidence_board.graph_progression_requested.connect(_on_board_graph_progression_requested)
-
-
-func _on_board_graph_progression_requested(clue_id: String) -> void:
-	if not evidence_graph:
-		return
-	if clue_id.begins_with("__deduction_progress__"):
-		evidence_graph._recalculate()
-		return
-	evidence_graph.resolve_clue(clue_id)
 
 
 func _on_deduction_progress(progress: float, insight_text: String) -> void:
-	pass
+	deduction_updated.emit(progress, insight_text)
 
 
 func _on_contradiction_detected(clue_a: String, clue_b: String) -> void:
-	pass
-
-
-func _on_graph_progressed(progress: float, insights: Array[String]) -> void:
-	pass
-
-
-func _on_graph_clue_unlocked(from_clue: String, unlocked_ids: Array[String]) -> void:
-	pass
-
-
-func _on_graph_clue_registered(clue_id: String) -> void:
-	pass
+	contradiction_noted.emit(clue_a, clue_b)
 
 
 func _setup_investigation_beat() -> void:
