@@ -246,3 +246,42 @@ func test_investigation_ui_fades_in_insight() -> void:
 	assert_true(ui.label.visible, "InvestigatonUI label should be visible after show_insight")
 	assert_eq(ui.label.text, "The smudge and neon both point to the alley.")
 	ui.hide_insight()
+
+
+func test_sensory_crime_loop_phases_and_auto_resolve() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var loop = main.get_node_or_null("SensoryCrimeLoop")
+	assert_not_null(loop, "SensoryCrimeLoop should be created in code")
+
+	var phases = []
+	loop.phase_changed.connect(func(from: int, to: int) -> void:
+		phases.append([from, to])
+	)
+
+	var resolved_texts = []
+	loop.loop_resolved.connect(func(text: String) -> void:
+		resolved_texts.append(text)
+	)
+
+	main.investigation_phase = main.InvestigationPhase.Observe
+	loop.reset_loop()
+	loop.bind(main, main.investigation_beat)
+	loop.trigger_overload()
+	loop.trigger_stim()
+	loop.trigger_tune_in()
+
+	var beat = main.investigation_beat
+	var combo_texts = []
+	beat.beat_resolved.connect(func(text: String) -> void:
+		combo_texts.append(text)
+	)
+	main.smudge_resolver.apply_presence(1.0)
+	main.neon_clue.apply_presence(1.0)
+	main.smudge_resolver._clarity = 1.0
+	main.neon_clue._clarity = 1.0
+	main.smudge_resolver.clarity_changed.emit("smudge", 1.0)
+	main.neon_clue.clarity_changed.emit("neon", 1.0)
+
+	assert_true(phases.size() >= 3, "Loop should advance through at least 3 phases")
+	assert_true(resolved_texts.size() > 0, "loop_resolved should fire when beat resolves")

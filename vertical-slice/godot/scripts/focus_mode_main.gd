@@ -22,6 +22,7 @@ var neon_clue: NeonClue
 var evidence_board: EvidenceBoard
 var investigation_beat: InvestigationBeat
 var investigation_ui: InvestigationUI
+var sensory_crime_loop: SensoryCrimeLoop
 var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
 
@@ -123,6 +124,7 @@ func _ready() -> void:
 	_setup_evidence_board()
 	_setup_investigation_beat()
 	_setup_investigation_ui()
+	_setup_sensory_crime_loop()
 	disruption_overlay = disruption_overlay_node
 	if disruptor and disruptor.has_signal("chaos_pulse"):
 		disruptor.chaos_pulse.connect(_on_chaos)
@@ -364,6 +366,13 @@ func _on_beat_resolved(insight_text: String) -> void:
 func _reset_investigation() -> void:
 	if investigation_ui:
 		investigation_ui.hide_insight()
+
+
+func _setup_sensory_crime_loop() -> void:
+	sensory_crime_loop = SensoryCrimeLoop.new()
+	sensory_crime_loop.name = "SensoryCrimeLoop"
+	add_child(sensory_crime_loop)
+	sensory_crime_loop.bind(self, investigation_beat)
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:
