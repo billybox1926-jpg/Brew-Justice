@@ -41,6 +41,14 @@ const CAFE_ROOM_MIX: float = 0.24
 const CAFE_CHATTER_DRIVE: float = 0.42
 const CAFE_CLINK_DECAY_RATE: float = 22.0
 const CAFE_CHATTER_STEP: float = 0.008
+## Chaos band center frequencies for variant-driven audio coloration.
+const CHAOS_BAND_LOW_CUTOFF: float = 200.0
+const CHAOS_BAND_MID_CUTOFF: float = 800.0
+const CHAOS_BAND_HIGH_CUTOFF: float = 3000.0
+const CHAOS_BAND_DEFAULT_CUTOFF: float = 1000.0
+const CHAOS_BAND_Q_MIN: float = 0.3
+const CHAOS_BAND_LERP_SCALE: float = 0.3
+const CHAOS_BAND_Q_LERP_SCALE: float = 0.5
 
 var _effects := {}
 var _cafe_player: AudioStreamPlayer
@@ -181,6 +189,22 @@ func update_targets(mode: String, stim_holding: bool, tune_active: bool, focus_a
 	else:
 		_target_band_cutoff = 1200.0
 		_target_band_q = 0.6
+
+
+## Shifts the bandpass target toward a specific auditory band in response to a chaos pulse.
+## band: "low", "mid", "high", or "full"
+## intensity: 0.0-1.0, how strongly the chaos colors the filter.
+func apply_chaos_band(band: String, intensity: float) -> void:
+	if intensity <= 0.0:
+		return
+	var base_cutoff := CHAOS_BAND_DEFAULT_CUTOFF
+	match band:
+		"low":    base_cutoff = CHAOS_BAND_LOW_CUTOFF
+		"mid":    base_cutoff = CHAOS_BAND_MID_CUTOFF
+		"high":   base_cutoff = CHAOS_BAND_HIGH_CUTOFF
+		_:        base_cutoff = CHAOS_BAND_DEFAULT_CUTOFF
+	_target_band_cutoff = lerpf(_target_band_cutoff, base_cutoff, intensity * CHAOS_BAND_LERP_SCALE)
+	_target_band_q = lerpf(_target_band_q, maxf(_target_band_q, CHAOS_BAND_Q_MIN), intensity * CHAOS_BAND_Q_LERP_SCALE)
 
 
 func _glide_filters(delta: float) -> void:

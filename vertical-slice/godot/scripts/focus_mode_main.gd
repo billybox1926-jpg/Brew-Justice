@@ -370,6 +370,8 @@ func _on_chaos(strength: float) -> void:
 
 func _on_chaos_rich(strength: float, duration: float, band: String) -> void:
 	_on_chaos(strength)
+	if audio_manager and audio_manager.has_method("apply_chaos_band"):
+		audio_manager.apply_chaos_band(band, strength)
 	_apply_antagonist_lore_for(band)
 
 

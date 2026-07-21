@@ -416,3 +416,32 @@ func test_disruptor_variant_emits_chaos_pulse() -> void:
 	disruptor_node.trigger_pulse()
 	assert_eq(strengths.size(), 1, "chaos_pulse should emit once when trigger_pulse is called")
 	assert_almost_eq(strengths[0], 0.9, 0.01, "chaos_pulse intensity should match variant")
+
+
+func test_audio_bus_manager_apply_chaos_band_shifts_targets() -> void:
+	var manager = AudioBusManager.new()
+	add_child_autofree(manager)
+	manager._ready()
+	manager._target_band_cutoff = 1200.0
+	manager._target_band_q = 0.6
+
+	manager.apply_chaos_band("low", 1.0)
+	assert_true(manager._target_band_cutoff < 1200.0 - 0.01, "Low band should lower bandpass target cutoff")
+
+	manager.apply_chaos_band("high", 1.0)
+	assert_true(manager._target_band_cutoff > 1200.0 + 0.01, "High band should raise bandpass target cutoff")
+
+
+func test_focus_mode_main_rich_chaos_applies_audio_band() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var manager = main.get_node("AudioBusManager")
+	assert_not_null(manager, "AudioBusManager should exist in focus_mode scene")
+
+	var band_requested = ""
+	var original = manager.apply_chaos_band
+	manager.apply_chaos_band = func(band: String, strength: float) -> void:
+		band_requested = band
+
+	main._on_chaos_rich(0.4, 0.5, "mid")
+	assert_eq(band_requested, "mid", "FocusModeMain should delegate band to AudioBusManager.apply_chaos_band")
