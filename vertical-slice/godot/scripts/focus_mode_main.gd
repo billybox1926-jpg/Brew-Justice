@@ -21,6 +21,7 @@ var smudge_resolver: SmudgeResolver
 var neon_clue: NeonClue
 var evidence_board: EvidenceBoard
 var investigation_beat: InvestigationBeat
+var investigation_ui: InvestigationUI
 var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
 
@@ -121,6 +122,7 @@ func _ready() -> void:
 	neon_clue = $TireClue
 	_setup_evidence_board()
 	_setup_investigation_beat()
+	_setup_investigation_ui()
 	disruption_overlay = disruption_overlay_node
 	if disruptor and disruptor.has_signal("chaos_pulse"):
 		disruptor.chaos_pulse.connect(_on_chaos)
@@ -343,6 +345,25 @@ func _setup_investigation_beat() -> void:
 	investigation_beat.required_progress = 0.75
 	add_child(investigation_beat)
 	investigation_beat.start(self)
+
+
+func _setup_investigation_ui() -> void:
+	investigation_ui = InvestigationUI.new()
+	investigation_ui.name = "InvestigationUI"
+	add_child(investigation_ui)
+	if investigation_beat:
+		investigation_beat.beat_resolved.connect(_on_beat_resolved)
+		reset_requested.connect(_reset_investigation)
+
+
+func _on_beat_resolved(insight_text: String) -> void:
+	if investigation_ui:
+		investigation_ui.show_insight(insight_text)
+
+
+func _reset_investigation() -> void:
+	if investigation_ui:
+		investigation_ui.hide_insight()
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:

@@ -233,3 +233,16 @@ func test_investigation_beat_resolves_after_combined_clues() -> void:
 	assert_true(resolved_texts.size() > 0, "beat_resolved should emit when combined clues reach threshold")
 	if resolved_texts.size() > 0:
 		assert_true(resolved_texts.back() != "", "beat_resolved should include non-empty insight text")
+
+
+func test_investigation_ui_fades_in_insight() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var ui: InvestigationUI = main.get_node_or_null("InvestigationUI")
+	assert_not_null(ui, "InvestigationUI should be created in code")
+	assert_not_null(ui.label, "InvestigationUI should own a Label")
+
+	ui.show_insight("The smudge and neon both point to the alley.")
+	assert_true(ui.label.visible, "InvestigatonUI label should be visible after show_insight")
+	assert_eq(ui.label.text, "The smudge and neon both point to the alley.")
+	ui.hide_insight()
