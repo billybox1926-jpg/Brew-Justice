@@ -15,10 +15,12 @@ var disruption_overlay: DisruptionOverlay
 
 var observer_light: ObserverLight
 var npc_regular: NpcRegular
+var smudge_resolver: SmudgeResolver
+var neon_clue: NeonClue
 var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
 
-# State
+
 var sensory := 18.0
 var focus_active := false
 var elapsed := 0.0
@@ -111,6 +113,8 @@ func _ready() -> void:
 	sensory_canvas = $SensoryCanvas
 	observer_light = $ObserverLight
 	npc_regular = $NpcRegular
+	smudge_resolver = $TireSmudge
+	neon_clue = $TireClue
 	disruption_overlay = disruption_overlay_node
 	if disruptor and disruptor.has_signal("chaos_pulse"):
 		disruptor.chaos_pulse.connect(_on_chaos)
@@ -290,6 +294,10 @@ func _update_world_listeners(delta: float) -> void:
 		observer_light.apply_calm(calm, delta)
 	if npc_regular:
 		npc_regular.apply_presence(presence)
+	if smudge_resolver:
+		smudge_resolver.apply_presence(presence)
+	if neon_clue:
+		neon_clue.apply_presence(presence)
 
 
 func _on_chaos(strength: float) -> void:

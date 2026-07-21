@@ -100,3 +100,56 @@ func test_neon_clue_no_material_no_crash() -> void:
 	sprite.apply_presence(0.0)
 	sprite.apply_presence(1.0)
 	assert_true(true, "NeonClue should no-op without ShaderMaterial")
+
+
+func test_evidence_board_progress_and_contradiction() -> void:
+	var board = EvidenceBoard.new()
+	add_child_autofree(board)
+
+	var clue_a = ClueData.new()
+	clue_a.clue_id = "smudge_pattern"
+	clue_a.clue_name = "Tread Pattern"
+	clue_a.presence_threshold = 0.7
+	clue_a.combines_with = ["neon_symbol"]
+	clue_a.contradicts = ["false_trail"]
+
+	var clue_b = ClueData.new()
+	clue_b.clue_id = "neon_symbol"
+	clue_b.clue_name = "Neon Glyph"
+	clue_b.presence_threshold = 0.7
+	clue_b.combines_with = ["smudge_pattern"]
+
+	var clue_contra = ClueData.new()
+	clue_contra.clue_id = "false_trail"
+	clue_contra.clue_name = "Old Brake Mark"
+
+	var resolver_a = ClueResolver.new()
+	resolver_a.clue_data = clue_a
+	var resolver_b = ClueResolver.new()
+	resolver_b.clue_data = clue_b
+	var resolver_contra = ClueResolver.new()
+	resolver_contra.clue_data = clue_contra
+
+	board.register_clue(clue_a, resolver_a)
+	board.register_clue(clue_b, resolver_b)
+	board.register_clue(clue_contra, resolver_contra)
+
+	resolver_a.apply_presence(1.0)
+	resolver_b.apply_presence(1.0)
+	resolver_contra.apply_presence(1.0)
+
+	var received_contradiction := false
+	board.contradiction_detected.connect(func(a: String, b: String) -> void:
+		received_contradiction = true
+	)
+	resolver_a.apply_presence(1.0)
+	resolver_contra.apply_presence(1.0)
+	assert_true(received_contradiction, "Contradiction should be detected when both conflicting clues resolve")
+
+	var last_progress := 0.0
+	board.deduction_progress.connect(func(progress: float, _text: String) -> void:
+		last_progress = progress
+	)
+	resolver_a.apply_presence(1.0)
+	resolver_b.apply_presence(1.0)
+	assert_true(last_progress > 0.0, "Deduction progress should increase when clues combine")

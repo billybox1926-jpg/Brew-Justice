@@ -1,7 +1,7 @@
 extends Sprite2D
 class_name NeonClue
 
-signal stability_changed(stability: float)
+signal clarity_changed(clarity: float)
 
 var _presence: float = 0.0
 var _material: Material
@@ -12,19 +12,20 @@ func _ready() -> void:
 
 func apply_presence(value: float) -> void:
 	_presence = clamp(value, 0.0, 1.0)
-	var stability := smoothstep(0.5, 0.85, _presence)
+	var clarity := smoothstep(0.5, 0.85, _presence)
 
 	if not _material:
 		_resolve_material()
 		if not _material:
+			clarity_changed.emit(clarity)
 			return
 
 	if _material is ShaderMaterial:
-		_material.set_shader_parameter("flicker_intensity", 1.0 - stability)
-		_material.set_shader_parameter("text_alpha", stability)
+		_material.set_shader_parameter("flicker_intensity", 1.0 - clarity)
+		_material.set_shader_parameter("text_alpha", clarity)
 
-	modulate.a = 0.18 + 0.82 * stability
-	stability_changed.emit(stability)
+	modulate.a = 0.18 + 0.82 * clarity
+	clarity_changed.emit(clarity)
 
 
 func _resolve_material() -> void:

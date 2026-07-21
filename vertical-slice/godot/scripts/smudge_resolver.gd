@@ -19,6 +19,7 @@ func apply_presence(value: float) -> void:
 	if not _material:
 		_resolve_material()
 		if not _material:
+			clarity_changed.emit(clarity)
 			return
 
 	if _material is ShaderMaterial:
