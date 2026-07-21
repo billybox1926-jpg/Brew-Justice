@@ -20,6 +20,7 @@ var npc_regular: NpcRegular
 var smudge_resolver: SmudgeResolver
 var neon_clue: NeonClue
 var evidence_board: EvidenceBoard
+var investigation_beat: InvestigationBeat
 var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
 
@@ -119,6 +120,7 @@ func _ready() -> void:
 	smudge_resolver = $TireSmudge
 	neon_clue = $TireClue
 	_setup_evidence_board()
+	_setup_investigation_beat()
 	disruption_overlay = disruption_overlay_node
 	if disruptor and disruptor.has_signal("chaos_pulse"):
 		disruptor.chaos_pulse.connect(_on_chaos)
@@ -333,6 +335,14 @@ func _on_deduction_progress(progress: float, insight_text: String) -> void:
 
 func _on_contradiction_detected(clue_a: String, clue_b: String) -> void:
 	contradiction_noted.emit(clue_a, clue_b)
+
+
+func _setup_investigation_beat() -> void:
+	investigation_beat = InvestigationBeat.new()
+	investigation_beat.name = "InvestigationBeat"
+	investigation_beat.required_progress = 0.75
+	add_child(investigation_beat)
+	investigation_beat.start(self)
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:

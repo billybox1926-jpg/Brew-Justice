@@ -191,3 +191,45 @@ func test_evidence_board_wired_in_focus_mode() -> void:
 		neon.clarity_changed.emit("neon", 1.0)
 		assert_true(progress_values.size() > 0, "deduction_updated should emit when clues combine")
 		assert_true(progress_values.back() > 0.9, "Progress should be high when both clues resolved")
+
+
+func test_investigation_beat_resolves_after_combined_clues() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var board = main.get_node_or_null("EvidenceBoard")
+	assert_not_null(board, "EvidenceBoard should exist")
+
+	var smudge: SmudgeResolver = main.smudge_resolver
+	var neon: NeonClue = main.neon_clue
+	var beat: InvestigationBeat = main.get_node_or_null("InvestigationBeat")
+	assert_not_null(beat, "InvestigationBeat should be created in code")
+
+	if smudge and neon:
+		var data1 = ClueData.new()
+		data1.clue_id = "smudge"
+		data1.clue_name = "Tread Pattern"
+		data1.presence_threshold = 0.5
+		data1.combines_with = ["neon"]
+		var data2 = ClueData.new()
+		data2.clue_id = "neon"
+		data2.clue_name = "Neon Glyph"
+		data2.presence_threshold = 0.5
+		data2.combines_with = ["smudge"]
+		smudge.clue_data = data1
+		neon.clue_data = data2
+		board.register_clue(data1, smudge)
+		board.register_clue(data2, neon)
+
+	var resolved_texts = []
+	beat.beat_resolved.connect(func(text: String) -> void:
+		resolved_texts.append(text)
+	)
+	smudge.apply_presence(1.0)
+	neon.apply_presence(1.0)
+	smudge._clarity = 1.0
+	neon._clarity = 1.0
+	smudge.clarity_changed.emit("smudge", 1.0)
+	neon.clarity_changed.emit("neon", 1.0)
+	assert_true(resolved_texts.size() > 0, "beat_resolved should emit when combined clues reach threshold")
+	if resolved_texts.size() > 0:
+		assert_true(resolved_texts.back() != "", "beat_resolved should include non-empty insight text")
