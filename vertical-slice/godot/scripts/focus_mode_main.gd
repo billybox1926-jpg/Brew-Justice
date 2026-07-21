@@ -136,20 +136,40 @@ func _ready() -> void:
 	_update_disruption_overlay()
 
 
+func _setup_sensory_crime_loop() -> void:
+	sensory_crime_loop = SensoryCrimeLoop.new()
+	sensory_crime_loop.name = "SensoryCrimeLoop"
+	add_child(sensory_crime_loop)
+	sensory_crime_loop.bind(self, investigation_beat)
+	_setup_demo_inputs()
+
+
+func _setup_demo_inputs() -> void:
+	_input_map_add_or_replace("demo_overload", KEY_O)
+	_input_map_add_or_replace("demo_stim_toggle", KEY_S)
+	_input_map_add_or_replace("demo_tune_in", KEY_T)
+
+
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		if event.pressed:
-			if event.keycode == KEY_F:
+	if event is InputEventKey and event.pressed:
+		if sensory_crime_loop:
+			if InputMap.has_action("demo_overload") and InputMap.action_has_event("demo_overload", event):
+				sensory_crime_loop.trigger_overload()
+			elif InputMap.has_action("demo_stim_toggle") and InputMap.action_has_event("demo_stim_toggle", event):
 				focus.toggle()
-			elif event.keycode == KEY_SPACE:
-				stim.press()
-			elif event.keycode == KEY_R:
-				_on_reset()
-			elif event.keycode == KEY_C:
-				_on_chaos(0.6)
-		else:
-			if event.keycode == KEY_SPACE:
-				stim.release()
+			elif InputMap.has_action("demo_tune_in") and InputMap.action_has_event("demo_tune_in", event):
+				sensory_crime_loop.trigger_tune_in()
+		if event.keycode == KEY_F:
+			focus.toggle()
+		elif event.keycode == KEY_SPACE:
+			stim.press()
+		elif event.keycode == KEY_R:
+			_on_reset()
+		elif event.keycode == KEY_C:
+			_on_chaos(0.6)
+	elif event is InputEventKey:
+		if event.keycode == KEY_SPACE:
+			stim.release()
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			meter.add_load(9.0)
@@ -366,13 +386,6 @@ func _on_beat_resolved(insight_text: String) -> void:
 func _reset_investigation() -> void:
 	if investigation_ui:
 		investigation_ui.hide_insight()
-
-
-func _setup_sensory_crime_loop() -> void:
-	sensory_crime_loop = SensoryCrimeLoop.new()
-	sensory_crime_loop.name = "SensoryCrimeLoop"
-	add_child(sensory_crime_loop)
-	sensory_crime_loop.bind(self, investigation_beat)
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:

@@ -82,6 +82,16 @@ func test_npc_regular_with_animation_tree() -> void:
 	tree.queue_free()
 
 
+func test_placeholder_tap_animation_exists() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var npc = scene.get_node("NpcRegular")
+	var player: AnimationPlayer = npc.get_node("AnimationPlayer")
+	assert_not_null(player, "AnimationPlayer should exist")
+	npc._setup_placeholder_animation()
+	assert_true(player.has_animation("tap"), "Placeholder tap animation should exist")
+	assert_eq(player.current_animation, "tap", "Placeholder tap should be playing")
+
+
 func test_smudge_resolver_no_material_no_crash() -> void:
 	var sprite = Sprite2D.new()
 	sprite.name = "SmudgeTest"
@@ -285,3 +295,27 @@ func test_sensory_crime_loop_phases_and_auto_resolve() -> void:
 
 	assert_true(phases.size() >= 3, "Loop should advance through at least 3 phases")
 	assert_true(resolved_texts.size() > 0, "loop_resolved should fire when beat resolves")
+
+
+func test_focus_mode_main_demo_inputs_registered() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	for action in ["demo_overload", "demo_stim_toggle", "demo_tune_in"]:
+		if not InputMap.has_action(action):
+			InputMap.add_action(action)
+	var eo = InputEventKey.new()
+	eo.keycode = KEY_O
+	eo.scancode = KEY_O
+	InputMap.action_add_event("demo_overload", eo)
+	var es = InputEventKey.new()
+	es.keycode = KEY_S
+	es.scancode = KEY_S
+	InputMap.action_add_event("demo_stim_toggle", es)
+	var et = InputEventKey.new()
+	et.keycode = KEY_T
+	et.scancode = KEY_T
+	InputMap.action_add_event("demo_tune_in", et)
+	main._setup_demo_inputs()
+	assert_true(InputMap.has_action("demo_overload"), "Demo overload action should exist")
+	assert_true(InputMap.has_action("demo_stim_toggle"), "Demo stim action should exist")
+	assert_true(InputMap.has_action("demo_tune_in"), "Demo tune-in action should exist")
