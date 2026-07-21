@@ -153,3 +153,41 @@ func test_evidence_board_progress_and_contradiction() -> void:
 	resolver_a.apply_presence(1.0)
 	resolver_b.apply_presence(1.0)
 	assert_true(last_progress > 0.0, "Deduction progress should increase when clues combine")
+
+
+func test_evidence_board_wired_in_focus_mode() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var board = main.get_node_or_null("EvidenceBoard")
+	assert_not_null(board, "EvidenceBoard should be created in code")
+
+	var smudge: SmudgeResolver = main.smudge_resolver
+	var neon: NeonClue = main.neon_clue
+	if smudge and neon:
+		var data1 = ClueData.new()
+		data1.clue_id = "smudge"
+		data1.clue_name = "Tread Pattern"
+		data1.presence_threshold = 0.5
+		data1.combines_with = ["neon"]
+		var data2 = ClueData.new()
+		data2.clue_id = "neon"
+		data2.clue_name = "Neon Glyph"
+		data2.presence_threshold = 0.5
+		data2.combines_with = ["smudge"]
+		smudge.clue_data = data1
+		neon.clue_data = data2
+		board.register_clue(data1, smudge)
+		board.register_clue(data2, neon)
+
+		var progress_values = []
+		main.deduction_updated.connect(func(p: float, _t: String) -> void:
+			progress_values.append(p)
+		)
+		smudge.apply_presence(1.0)
+		neon.apply_presence(1.0)
+		smudge._clarity = 1.0
+		neon._clarity = 1.0
+		smudge.clarity_changed.emit("smudge", 1.0)
+		neon.clarity_changed.emit("neon", 1.0)
+		assert_true(progress_values.size() > 0, "deduction_updated should emit when clues combine")
+		assert_true(progress_values.back() > 0.9, "Progress should be high when both clues resolved")

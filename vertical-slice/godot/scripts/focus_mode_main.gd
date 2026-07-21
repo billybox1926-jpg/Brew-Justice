@@ -6,6 +6,8 @@ signal investigation_passed()
 signal investigation_blocked()
 signal world_listeners_updated(presence: float)
 signal calm_changed(calm: float)
+signal deduction_updated(progress: float, insight_text: String)
+signal contradiction_noted(clue_a: String, clue_b: String)
 
 # Components
 var meter: SensoryMeter
@@ -17,6 +19,7 @@ var observer_light: ObserverLight
 var npc_regular: NpcRegular
 var smudge_resolver: SmudgeResolver
 var neon_clue: NeonClue
+var evidence_board: EvidenceBoard
 var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
 
@@ -115,6 +118,7 @@ func _ready() -> void:
 	npc_regular = $NpcRegular
 	smudge_resolver = $TireSmudge
 	neon_clue = $TireClue
+	_setup_evidence_board()
 	disruption_overlay = disruption_overlay_node
 	if disruptor and disruptor.has_signal("chaos_pulse"):
 		disruptor.chaos_pulse.connect(_on_chaos)
@@ -309,6 +313,26 @@ func _on_chaos(strength: float) -> void:
 func _update_disruption_overlay() -> void:
 	if disruption_overlay:
 		disruption_overlay.chaos = chaos
+
+
+func _setup_evidence_board() -> void:
+	evidence_board = EvidenceBoard.new()
+	evidence_board.name = "EvidenceBoard"
+	add_child(evidence_board)
+	if smudge_resolver:
+		evidence_board.register_clue(smudge_resolver.clue_data, smudge_resolver)
+	if neon_clue:
+		evidence_board.register_clue(neon_clue.clue_data, neon_clue)
+	evidence_board.deduction_progress.connect(_on_deduction_progress)
+	evidence_board.contradiction_detected.connect(_on_contradiction_detected)
+
+
+func _on_deduction_progress(progress: float, insight_text: String) -> void:
+	deduction_updated.emit(progress, insight_text)
+
+
+func _on_contradiction_detected(clue_a: String, clue_b: String) -> void:
+	contradiction_noted.emit(clue_a, clue_b)
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:

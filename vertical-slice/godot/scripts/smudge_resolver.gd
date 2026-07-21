@@ -6,6 +6,7 @@ signal clarity_changed(clarity: float)
 var _presence: float = 0.0
 var _material: Material
 var _initial_modulate: Color
+@export var clue_data: ClueData
 
 func _ready() -> void:
 	_initial_modulate = modulate
