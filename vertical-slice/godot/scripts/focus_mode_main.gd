@@ -141,7 +141,30 @@ func _setup_sensory_crime_loop() -> void:
 	sensory_crime_loop.name = "SensoryCrimeLoop"
 	add_child(sensory_crime_loop)
 	sensory_crime_loop.bind(self, investigation_beat)
+	if sensory_crime_loop.has_signal("phase_changed"):
+		sensory_crime_loop.phase_changed.connect(_on_sensory_loop_phase_changed)
 	_setup_demo_inputs()
+
+
+func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
+	if state_label:
+		state_label.text = _focus_mode_phase_label(to)
+
+
+func _focus_mode_phase_label(phase: int) -> String:
+	match phase:
+		SensoryCrimeLoop.Phase.OBSERVE:
+			return "Observe"
+		SensoryCrimeLoop.Phase.OVERLOAD:
+			return "Overload"
+		SensoryCrimeLoop.Phase.STIM:
+			return "Stim"
+		SensoryCrimeLoop.Phase.TUNE_IN:
+			return "Tune-in"
+		SensoryCrimeLoop.Phase.RESOLVE:
+			return "Resolve"
+		_:
+			return ""
 
 
 func _setup_demo_inputs() -> void:

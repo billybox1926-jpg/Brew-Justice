@@ -9,8 +9,8 @@ enum Phase { OBSERVE, OVERLOAD, STIM, TUNE_IN, RESOLVE }
 @export var auto_reset: bool = false
 @export var reset_delay: float = 1.0
 
-var focus_main: FocusModeMain
-var investigation_beat: InvestigationBeat
+var _reset_source: Object
+var _beat: InvestigationBeat
 var current_phase := Phase.OBSERVE
 var _reset_timer: float = 0.0
 
@@ -23,10 +23,9 @@ func _process(delta: float) -> void:
 			reset_loop()
 
 
-func bind(focus_node: FocusModeMain, beat_node: InvestigationBeat) -> void:
-	focus_main = focus_node
-	investigation_beat = beat_node
-	_snapshot_start_phase()
+func bind(reset_source: Object = null, beat_node: InvestigationBeat = null) -> void:
+	_reset_source = reset_source
+	_beat = beat_node
 	_add_watch_signals()
 
 
@@ -74,34 +73,13 @@ func _is_legal(from: int, to: int) -> bool:
 			return false
 
 
-func _snapshot_start_phase() -> void:
-	if focus_main:
-		current_phase = _map_focus_phase(focus_main.investigation_phase)
-	else:
-		current_phase = Phase.OBSERVE
-
-
-func _map_focus_phase(phase: int) -> int:
-	if not focus_main:
-		return Phase.OBSERVE
-	match phase:
-		focus_main.InvestigationPhase.Observe:
-			return Phase.OBSERVE
-		focus_main.InvestigationPhase.TuneIn:
-			return Phase.TUNE_IN
-		focus_main.InvestigationPhase.Resolve, focus_main.InvestigationPhase.Resolved:
-			return Phase.RESOLVE
-		_:
-			return Phase.OBSERVE
-
-
 func _add_watch_signals() -> void:
-	if investigation_beat and investigation_beat.has_signal("beat_resolved"):
-		if not investigation_beat.is_connected("beat_resolved", _on_beat_resolved):
-			investigation_beat.beat_resolved.connect(_on_beat_resolved)
-	if focus_main and focus_main.has_signal("reset_requested"):
-		if not focus_main.is_connected("reset_requested", reset_loop):
-			focus_main.reset_requested.connect(reset_loop)
+	if _beat and _beat.has_signal("beat_resolved"):
+		if not _beat.is_connected("beat_resolved", _on_beat_resolved):
+			_beat.beat_resolved.connect(_on_beat_resolved)
+	if _reset_source and _reset_source.has_signal("reset_requested"):
+		if not _reset_source.is_connected("reset_requested", reset_loop):
+			_reset_source.reset_requested.connect(reset_loop)
 
 
 func _on_beat_resolved(insight_text: String) -> void:
