@@ -3,6 +3,19 @@ class_name SensoryCanvas
 
 ## Renders sensory feedback: vignette, trail, bind highlights.
 
+const VIGNETTE_BASE_FRAC: float = 0.55
+const VIGNETTE_RADIUS_SPAN: float = 0.3
+const VIGNETTE_ALPHA_BASE: float = 0.10
+const VIGNETTE_ALPHA_SPAN: float = 0.56
+const VIGNETTE_ALPHA_MIN: float = 0.06
+const VIGNETTE_ALPHA_MAX: float = 0.66
+const VIGNETTE_WARMTH_BLEND: float = 0.55
+const VIGNETTE_CALM_WARMTH: float = 0.2
+const VIGNETTE_CHAOS_TINT: Color = Color(0.18, 0.08, 0.04)
+const VIGNETTE_CHAOS_DRIVER: float = 0.35
+const VIGNETTE_CALM_DRIVER: float = 0.04
+const VIGNETTE_EASE: float = 0.55
+
 @export var vignette_color: Color = Color(0.05, 0.03, 0.02)
 @export var trail_color: Color = Color(0.82, 0.62, 0.18)
 @export var highlight_color: Color = Color(1.0, 0.9, 0.6)
@@ -28,21 +41,26 @@ func _draw() -> void:
 	_draw_clue_glow()
 
 
+func _get_vignette_strength(presence: float, chaos: float, calm: float) -> float:
+	var strength := (1.0 - presence) + chaos * VIGNETTE_CHAOS_DRIVER
+	strength += calm * VIGNETTE_CALM_DRIVER
+	return clampf(strength, 0.0, 1.0)
+
+
+func _get_vignette_color(strength: float, calm: float) -> Color:
+	var col := vignette_color
+	col.a = clampf(VIGNETTE_ALPHA_BASE + strength * VIGNETTE_ALPHA_SPAN, VIGNETTE_ALPHA_MIN, VIGNETTE_ALPHA_MAX)
+	col = col.lerp(VIGNETTE_CHAOS_TINT, strength * VIGNETTE_WARMTH_BLEND + calm * VIGNETTE_CALM_WARMTH)
+	return col
+
+
 func _draw_vignette() -> void:
 	var size := get_viewport_rect().size
-	var strength := (1.0 - presence) + chaos * 0.35
-	strength += calm * 0.04
-	strength = clampf(strength, 0.0, 1.0)
-	var eased := ease(strength, 0.55)
-	var radius := min(size.x, size.y) * (0.55 + eased * 0.3)
-	var alpha := 0.10 + eased * 0.56
-	var col := vignette_color
-	col.a = clampf(alpha, 0.06, 0.66)
+	var strength := _get_vignette_strength(presence, chaos, calm)
+	var eased := ease(strength, VIGNETTE_EASE)
+	var radius := min(size.x, size.y) * (VIGNETTE_BASE_FRAC + eased * VIGNETTE_RADIUS_SPAN)
+	var col := _get_vignette_color(eased, calm)
 
-	# Warm tint from chaos/calm
-	col = col.lerp(Color(0.18, 0.08, 0.04), eased * 0.55 + calm * 0.2)
-
-	# Corner vignette
 	draw_rect(Rect2(0, 0, size.x, size.y - radius), col)
 	draw_rect(Rect2(0, 0, size.x - radius, size.y), col)
 	draw_rect(Rect2(radius, 0, size.x - radius, size.y), col)
@@ -75,7 +93,7 @@ func _draw_bind_highlights() -> void:
 					p + Vector2(0, -size),
 					p + Vector2(size, 0),
 					p + Vector2(0, size),
-					p + Vector2(-size, 0)
+					p + Vector2(-size, 0),
 				])
 				draw_colored_polygon(pts, c)
 			2:

@@ -368,3 +368,18 @@ func test_audio_bus_manager_glide_noops_when_effect_missing() -> void:
 	manager._target_band_cutoff = 2000.0
 	manager._glide_filters(0.016)
 	assert_almost_eq(manager._current_band_cutoff, 1000.0, 0.01, "Glide should no-op when effect lookup returns null")
+
+
+func test_vignette_calculation_constants_present() -> void:
+	var canvas = SensoryCanvas.new()
+	add_child_autofree(canvas)
+	assert_true(canvas.has_method("_get_vignette_strength"), "Vignette strength helper should exist")
+	assert_true(canvas.has_method("_get_vignette_color"), "Vignette color helper should exist")
+
+	var calm_strength := canvas._get_vignette_strength(0.0, 0.0, 1.0)
+	var chaos_strength := canvas._get_vignette_strength(0.0, 1.0, 0.0)
+	assert_true(chaos_strength >= calm_strength, "Chaos should increase vignette strength")
+
+	var calm_color := canvas._get_vignette_color(canvas._get_vignette_strength(0.0, 0.0, 1.0), 1.0)
+	var chaos_color := canvas._get_vignette_color(canvas._get_vignette_strength(0.0, 1.0, 0.0), 0.0)
+	assert_true(chaos_color.a >= calm_color.a, "Chaos should make vignette more visible")
