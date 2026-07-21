@@ -319,3 +319,26 @@ func test_focus_mode_main_demo_inputs_registered() -> void:
 	assert_true(InputMap.has_action("demo_overload"), "Demo overload action should exist")
 	assert_true(InputMap.has_action("demo_stim_toggle"), "Demo stim action should exist")
 	assert_true(InputMap.has_action("demo_tune_in"), "Demo tune-in action should exist")
+
+
+func test_audio_bus_manager_looks_up_effects_by_name() -> void:
+	var manager = AudioBusManager.new()
+	add_child_autofree(manager)
+	manager._ready()
+	assert_true(manager._effects.has("lowpass"), "AudioBusManager should register lowpass by name")
+	assert_true(manager._effects.has("highpass"), "AudioBusManager should register highpass by name")
+	assert_true(manager._effects.has("bandpass"), "AudioBusManager should register bandpass by name")
+	var bandpass = manager._effects["bandpass"] as AudioEffectBandPassFilter
+	assert_not_null(bandpass, "BandPassFilter lookup should succeed after setup")
+
+
+func test_audio_bus_manager_glide_noops_when_effect_missing() -> void:
+	var manager = AudioBusManager.new()
+	add_child_autofree(manager)
+	manager._effects["bandpass"] = null
+	manager._effects["lowpass"] = null
+	manager._effects["highpass"] = null
+	manager._current_band_cutoff = 1000.0
+	manager._target_band_cutoff = 2000.0
+	manager._glide_filters(0.016)
+	assert_almost_eq(manager._current_band_cutoff, 1000.0, 0.01, "Glide should no-op when effect lookup returns null")
