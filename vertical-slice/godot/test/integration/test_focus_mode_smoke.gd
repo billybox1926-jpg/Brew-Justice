@@ -53,3 +53,30 @@ func test_signal_triggers_reaction():
 	await wait_frames(2)
 	var after_edges := overlay.get("chaos")
 	assert_true(after_edges > before_edges, "Chaos pulse should increase overlay chaos")
+
+
+func test_npc_regular_fallback_speed_scale() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var npc = scene.get_node("NpcRegular")
+	assert_false(npc.has_node("AnimationTree"), "NPC should start without AnimationTree")
+	npc.apply_presence(1.0)
+	assert_almost_eq(npc.get_node("AnimationPlayer").speed_scale, 1.8, 0.01)
+	npc.apply_presence(0.0)
+	assert_almost_eq(npc.get_node("AnimationPlayer").speed_scale, 4.0, 0.01)
+
+
+func test_npc_regular_with_animation_tree() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var npc = scene.get_node("NpcRegular")
+	var tree = AnimationTree.new()
+	tree.active = true
+	var blend_root = AnimationNodeBlendSpace1D.new()
+	blend_root.add_blend_point(null, 0.0)
+	blend_root.add_blend_point(null, 1.0)
+	tree.tree_root = blend_root
+	npc.add_child(tree, true)
+	npc.apply_presence(1.0)
+	assert_almost_eq(tree.get("parameters/calm"), 1.0, 0.01)
+	assert_eq(npc.get_node("AnimationPlayer").speed_scale, 1.0)
+	npc.remove_child(tree)
+	tree.queue_free()
