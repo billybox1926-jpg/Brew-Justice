@@ -445,3 +445,59 @@ func test_focus_mode_main_rich_chaos_applies_audio_band() -> void:
 
 	main._on_chaos_rich(0.4, 0.5, "mid")
 	assert_eq(band_requested, "mid", "FocusModeMain should delegate band to AudioBusManager.apply_chaos_band")
+
+
+func test_story_beat_starts_disruptor_on_target_phase() -> void:
+	var beat = StoryBeat.new()
+	add_child_autofree(beat)
+	beat.beat_name = "transformer_intro"
+	beat.target_phase = 1
+	var d = Disruptor.new()
+	add_child_autofree(d)
+	d.auto_fire = false
+	beat.disruptor = d
+	var variant = DisruptorVariant.new()
+	variant.variant_name = "transformer_hum"
+	variant.intensity = 0.5
+	variant.duration = 1.0
+	variant.interval = 4.0
+	variant.auditory_band = "low"
+	variant.lore_fragment = "A distant transformer hums through the wall."
+	beat.variant_on_start = variant
+
+	beat.on_phase_changed(0, 1)
+	assert_true(d.auto_fire, "StoryBeat should enable auto_fire when entering target phase")
+
+
+func test_story_beat_ends_disruptor_on_phase_exit() -> void:
+	var beat = StoryBeat.new()
+	add_child_autofree(beat)
+	beat.beat_name = "transformer_intro"
+	beat.target_phase = 1
+	var d = Disruptor.new()
+	add_child_autofree(d)
+	d.auto_fire = false
+	beat.disruptor = d
+	beat.start_beat()
+
+	beat.on_phase_changed(1, 2)
+	assert_false(d.auto_fire, "StoryBeat should disable auto_fire when leaving target phase")
+
+
+func test_story_beat_applies_variant_on_start() -> void:
+	var beat = StoryBeat.new()
+	add_child_autofree(beat)
+	beat.beat_name = "transformer_intro"
+	beat.target_phase = 1
+	var d = Disruptor.new()
+	add_child_autofree(d)
+	d.variant = DisruptorVariant.new()
+	beat.disruptor = d
+	var variant = DisruptorVariant.new()
+	variant.variant_name = "transformer_hum"
+	variant.intensity = 0.5
+	variant.auditory_band = "low"
+	beat.variant_on_start = variant
+
+	beat.on_phase_changed(0, 1)
+	assert_eq(d.variant.variant_name, "transformer_hum", "StoryBeat should assign variant on start")

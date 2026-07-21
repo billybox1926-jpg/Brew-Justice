@@ -25,6 +25,7 @@ var investigation_ui: InvestigationUI
 var sensory_crime_loop: SensoryCrimeLoop
 var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
+var story_beat_overload: StoryBeat
 
 
 var sensory := 18.0
@@ -153,6 +154,27 @@ func _setup_sensory_crime_loop() -> void:
 	if sensory_crime_loop.has_signal("phase_changed"):
 		sensory_crime_loop.phase_changed.connect(_on_sensory_loop_phase_changed)
 	_setup_demo_inputs()
+	_setup_story_beat_overload()
+
+
+func _setup_story_beat_overload() -> void:
+	story_beat_overload = StoryBeat.new()
+	story_beat_overload.name = "StoryBeatOverload"
+	story_beat_overload.beat_name = "distant_transformer"
+	story_beat_overload.target_phase = SensoryCrimeLoop.Phase.OVERLOAD
+	story_beat_overload.retry_until_triggered = true
+	story_beat_overload.disruptor = disruptor
+	var transformer_variant = DisruptorVariant.new()
+	transformer_variant.variant_name = "transformer_hum"
+	transformer_variant.intensity = 0.5
+	transformer_variant.duration = 1.0
+	transformer_variant.interval = 4.0
+	transformer_variant.auditory_band = "low"
+	transformer_variant.lore_fragment = "A distant transformer hums through the wall."
+	story_beat_overload.variant_on_start = transformer_variant
+	add_child(story_beat_overload)
+	if sensory_crime_loop.has_signal("phase_changed"):
+		sensory_crime_loop.phase_changed.connect(story_beat_overload.on_phase_changed)
 
 
 func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
