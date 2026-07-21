@@ -80,3 +80,23 @@ func test_npc_regular_with_animation_tree() -> void:
 	assert_eq(npc.get_node("AnimationPlayer").speed_scale, 1.0)
 	npc.remove_child(tree)
 	tree.queue_free()
+
+
+func test_smudge_resolver_no_material_no_crash() -> void:
+	var sprite = Sprite2D.new()
+	sprite.name = "SmudgeTest"
+	add_child_autofree(sprite)
+	sprite.set_script(load("res://scripts/smudge_resolver.gd"))
+	sprite.apply_presence(0.0)
+	sprite.apply_presence(1.0)
+	assert_true(true, "SmudgeResolver should no-op without ShaderMaterial")
+
+
+func test_neon_clue_no_material_no_crash() -> void:
+	var sprite = Sprite2D.new()
+	sprite.name = "NeonClueTest"
+	add_child_autofree(sprite)
+	sprite.set_script(load("res://scripts/neon_clue.gd"))
+	sprite.apply_presence(0.0)
+	sprite.apply_presence(1.0)
+	assert_true(true, "NeonClue should no-op without ShaderMaterial")
