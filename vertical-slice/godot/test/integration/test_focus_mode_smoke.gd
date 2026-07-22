@@ -65,6 +65,24 @@ func test_npc_regular_fallback_speed_scale() -> void:
 	assert_almost_eq(npc.get_node("AnimationPlayer").speed_scale, 4.0, 0.01)
 
 
+func test_clue_resolve_requires_calm_in_tune_in() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	main.tire_clue = main.get_node_or_null("SceneView/TireClue")
+	assert_not_null(main.tire_clue, "TireClue should exist for #9 resolution test")
+
+	main.investigation_phase = main.InvestigationPhase.TuneIn
+	main.clue_resolve_progress = 0.0
+	main.calm = 0.9
+	main.call("_update_clue_resolution", 0.5)
+	assert_true(main.clue_resolve_progress > 0.5, "Clue resolve progress should advance under high calm in TuneIn")
+
+	main.investigation_phase = main.InvestigationPhase.Observe
+	main.clue_resolve_progress = 0.0
+	main.call("_update_clue_resolution", 0.5)
+	assert_almost_eq(main.clue_resolve_progress, 0.0, 0.01, "Clue resolve progress should decay outside TuneIn")
+
+
 func test_npc_regular_with_animation_tree() -> void:
 	var scene = load("res://scenes/focus_mode.tscn").instantiate()
 	var npc = scene.get_node("NpcRegular")

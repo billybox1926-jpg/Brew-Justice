@@ -40,6 +40,10 @@ var presence_target := 0.0
 var chaos := 0.0
 var clue_alpha := 0.0
 var stream_id_requested := false
+var calm := 0.0
+var clue_resolve_progress := 0.0
+const CLUE_RESOLVE_CALM_THRESHOLD := 0.72
+const CLUE_RESOLVE_CHAOS_PENALTY := 0.25
 
 # Investigation beat
 enum InvestigationPhase { Observe, TuneIn, Resolve, Resolved }
@@ -278,7 +282,21 @@ func _process(delta: float) -> void:
 	_update_investigation(delta)
 	_rain(delta)
 	_update_world_listeners(delta)
+	calm = smoothstep(0.0, 1.0, presence)
+	_update_clue_resolution(delta)
 	_update_canvas(delta)
+
+
+func _update_clue_resolution(delta: float) -> void:
+	if investigation_phase != InvestigationPhase.TuneIn:
+		clue_resolve_progress = move_toward(clue_resolve_progress, 0.0, delta * 2.0)
+		return
+	var target := 0.0
+	if calm >= CLUE_RESOLVE_CALM_THRESHOLD:
+		target = 1.0
+	clue_resolve_progress = move_toward(clue_resolve_progress, target, delta * 3.0)
+	if clue_resolve_progress >= 0.98:
+		_try_resolve_investigation()
 	_update_ui()
 
 	if sensory_canvas:
@@ -374,6 +392,7 @@ func _reset_investigation() -> void:
 	investigation_clue_idx = 0
 	investigation_emitted = false
 	investigation_cooldown = INVESTIGATION_COOLDOWN()
+	clue_resolve_progress = 0.0
 	_reset_investigation_visuals()
 
 
@@ -699,8 +718,13 @@ func _update_ui() -> void:
 			var clamped_idx := min(investigation_clue_idx, 3)
 			var target_a := 0.22 + clamped_idx * 0.18 + (0.18 if investigation_emitted else 0.0)
 			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, min(target_a, 0.96), get_process_delta_time() * 4.0)
+			var neon_strength := clamp(clue_resolve_progress, 0.0, 1.0)
+			tire_clue.modulate = tire_clue.modulate.lerp(Color(1.0, 0.9, 0.6, tire_clue.modulate.a), neon_strength * get_process_delta_time() * 4.0)
+			tire_clue.scale = tire_clue.scale.lerp(Vector2.ONE * (1.0 + neon_strength * 0.15), get_process_delta_time() * 4.0)
 		elif investigation_phase == InvestigationPhase.Resolved:
 			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, 0.98, get_process_delta_time() * 5.0)
+			tire_clue.modulate = tire_clue.modulate.lerp(Color(1.0, 0.95, 0.7, tire_clue.modulate.a), get_process_delta_time() * 5.0)
+			tire_clue.scale = tire_clue.scale.lerp(Vector2.ONE * 1.15, get_process_delta_time() * 5.0)
 		else:
 			var clue_target := 0.18
 			if focus_active or mode != METER_MODE_BASELINE:
