@@ -40,52 +40,6 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) first (the one rule: accessibility
 *is* the design), then the [wiki](https://github.com/billybox1926-jpg/Brew-Justice/wiki)
 for how it's built.
 
-## The loop at a glance
-
-```
-                focus (F)
-   Baseline ───────────────▶ Hyperfocus
-      ▲                        │
-      │ reset (R) / load drops│ load rises (click / time)
-      │                        ▼
-      │                     Overload
-      └──── stim release (Space) ┘
-
-   Baseline   0-40    periphery open, clue dim
-   Hyperfocus 41-75   perception boosted
-   Overload   76-100  periphery collapses, clue bright
-```
-
-Two signals ride on top of the state:
-
-- **`presence`** rises with each steady `rhythm_pulse` and eases the vignette
-  back — the room co-regulates with the player.
-- **`chaos`** (from a disruptor) injects jitter into the beat and throttles the
-  calm leak, so the space recoils. It decays on its own; keep stimming to win
-  your peace back.
-
-## Signal flow
-
-```
-  StimTool ──rhythm_pulse──▶ FocusModeMain ──load──▶ SensoryMeter
-     │                          │  ▲
-     └──stim_released──────────┘  │ mode
-                                  │
-  Disruptor ──chaos_pulse────────┘
-                                  │
-        FocusModeMain emits to:
-          • SFX bus        (LowPass + HighPass + BandPass)  [audio targets]
-          • Vignette + clue markers   (presence, peripheries)  ┄ chaos throttles
-          • Ambient light + NPC       (presence)              ┄ chaos throttles
-```
-
-![BrewJustice system diagram](assets/brewjustice.svg)
-
-Everything is wired through signals, not tree-scans: `FocusModeMain` owns a
-reference to `stim` and reads `chaos`, and the meter/labels react to emitted
-changes. The Disruptor is inert until you connect its `chaos_pulse` to
-`FocusModeMain._on_chaos`.
-
 ## Playable demo (vertical slice)
 
 A runnable Godot 4.4 vertical slice lives in `vertical-slice/godot/`. It is a
@@ -141,3 +95,12 @@ It explores the same focus-mode loop with the Web Audio API:
 - **Click canvas** — raise sensory load toward Overload
 - Web Audio ambient (low rumble + high hiss) that reshapes per state, plus an
   Overload drone when the meter peaks
+
+---
+
+**Docs**
+
+- **Contributing** — [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Architecture** — [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Wiring checklist** — [WIRING.md](WIRING.md)
+- **Code of Conduct** — [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
