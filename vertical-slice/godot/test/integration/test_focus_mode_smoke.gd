@@ -738,3 +738,28 @@ func test_focus_mode_main_world_listeners_updated_emits_presence() -> void:
 	main.call("_update_world_listeners", 0.05)
 	assert_true(received.size() > 0, "world_listeners_updated should emit each frame from _update_world_listeners")
 	assert_almost_eq(received.back(), 0.42, 0.01, "world_listeners_updated should emit the current presence")
+
+
+func test_focus_mode_resolve_routes_through_evidence_board() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var signals = []
+	main.evidence_board.graph_progression_requested.connect(func(id: String) -> void:
+		signals.append(id)
+	)
+	main.investigation_phase = main.InvestigationPhase.TuneIn
+	main.investigation_emitted = true
+	main.active_clue_id = "smudge"
+	main.call("_try_resolve_investigation")
+	assert_eq(signals.size(), 1, "EvidenceBoard.graph_progression_requested should fire once per active resolve")
+
+
+func test_preferences_manager_startup_applies_custom_bindings() -> void:
+	var pm = PreferencesManager.new()
+	add_child_autofree(pm)
+	if not InputMap.has_action("demo_overload"):
+		InputMap.add_action("demo_overload")
+	pm.custom_bindings = {"demo_overload": [{"keycode": KEY_K}]}
+	pm.call("apply_bindings")
+	var action = InputMap.get_action_list("demo_overload")
+	assert_true(action.size() > 0, "apply_bindings should restore at least one saved binding")

@@ -342,8 +342,8 @@ func _peripheral_state() -> void:
 func _try_resolve_investigation() -> void:
 	if investigation_phase != InvestigationPhase.TuneIn or not investigation_emitted:
 		return
-	if evidence_graph and active_clue_id != "":
-		evidence_graph.resolve_clue(active_clue_id)
+	if evidence_board and active_clue_id != "":
+		evidence_board.resolve_clue(active_clue_id)
 		active_clue_id = ""
 	investigation_phase = InvestigationPhase.Resolved
 	investigation_resolve_duration = INVESTIGATION_RESOLVE_TIME()
@@ -361,11 +361,11 @@ func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
 
 
 func _active_clue_if_any() -> void:
-	if evidence_graph:
+	if not evidence_board:
 		return
-	for id in evidence_graph.clues:
-		var c := evidence_graph.clues[id] as ClueGraph.Clue
-		if c and not c.unlocked:
+	for id in evidence_board._graph:
+		var data = evidence_board._graph[id]
+		if data and not evidence_board._clue_states.get(id, 0.0):
 			active_clue_id = id
 			break
 
