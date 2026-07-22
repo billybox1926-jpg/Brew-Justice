@@ -28,7 +28,8 @@ var sensory_canvas: SensoryCanvas
 var story_beat_overload: StoryBeat
 
 var _prefs: PreferencesManager
-
+var _caption_label: RichTextLabel
+var _caption_timer: Timer
 
 var sensory := 18.0
 var focus_active := false
@@ -148,6 +149,7 @@ func _ready() -> void:
 	init_drops()
 	_setup_ui()
 	_update_disruption_overlay()
+	_setup_captions()
 
 
 func _setup_sensory_crime_loop() -> void:
@@ -194,8 +196,11 @@ func _setup_story_beat_overload() -> void:
 func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
 	if state_label:
 		state_label.text = _focus_mode_phase_label(to)
+	if _prefs and _prefs.captions_enabled:
+		_show_caption(_phase_caption(to))
 	if to == SensoryCrimeLoop.Phase.TUNE_IN:
 		_start_next_clue()
+
 
 
 func _focus_mode_phase_label(phase: int) -> String:
@@ -229,16 +234,16 @@ func _input(event: InputEvent) -> void:
 				focus.toggle()
 			elif InputMap.has_action("demo_tune_in") and InputMap.action_has_event("demo_tune_in", event):
 				sensory_crime_loop.trigger_tune_in()
-		if event.keycode == KEY_F:
+		if InputMap.has_action("focus_toggle") and InputMap.action_pressed("focus_toggle"):
 			focus.toggle()
-		elif event.keycode == KEY_SPACE:
+		elif InputMap.has_action("stim_hold") and InputMap.action_pressed("stim_hold"):
 			stim.press()
-		elif event.keycode == KEY_R:
+		elif InputMap.has_action("reset_sensory") and InputMap.action_pressed("reset_sensory"):
 			_on_reset()
-		elif event.keycode == KEY_C:
+		elif InputMap.has_action("chaos_trigger") and InputMap.action_pressed("chaos_trigger"):
 			_on_chaos(0.6)
 	elif event is InputEventKey:
-		if event.keycode == KEY_SPACE:
+		if InputMap.has_action("stim_hold") and InputMap.action_released("stim_hold"):
 			stim.release()
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -429,6 +434,62 @@ func _on_chaos_rich(strength: float, duration: float, band: String) -> void:
 	if audio_manager and audio_manager.has_method("apply_chaos_band"):
 		audio_manager.apply_chaos_band(band, strength)
 	_apply_antagonist_lore_for(band)
+	if _prefs and _prefs.captions_enabled:
+		_show_caption("Chaos surge — %s band" % band)
+
+
+func setup_captions() -> void:
+	if not is_inside_tree():
+		return
+	if not _caption_label:
+		_caption_label = RichTextLabel.new()
+		_caption_label.anchor_left = 0.5
+		_caption_label.anchor_top = 1.0
+		_caption_label.anchor_right = 0.5
+		_caption_label.anchor_bottom = 1.0
+		_caption_label.offset_left = -320
+		_caption_label.offset_top = -120
+		_caption_label.offset_right = 320
+		_caption_label.offset_bottom = -40
+		_caption_label.bbcode_enabled = true
+		_caption_label.modulate = Color(1, 1, 1, 0)
+		_caption_label.add_theme_color_override("default_color", Color(0.95, 0.95, 0.95))
+		_caption_label.add_theme_font_size_override("normal_font_size", 20)
+		_caption_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_caption_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		add_child(_caption_label)
+	if not _caption_timer:
+		_caption_timer = Timer.new()
+		_caption_timer.one_shot = true
+		_caption_timer.timeout.connect(_hide_caption)
+		add_child(_caption_timer)
+
+
+func _show_caption(text: String, duration: float = 2.5) -> void:
+	if not _caption_label or not _prefs or not _prefs.captions_enabled:
+		return
+	_caption_label.text = text
+	var tween := create_tween()
+	tween.tween_property(_caption_label, "modulate:a", 1.0, 0.2)
+	_caption_timer.wait_time = duration
+	_caption_timer.start()
+
+
+func _hide_caption() -> void:
+	if not _caption_label:
+		return
+	var tween := create_tween()
+	tween.tween_property(_caption_label, "modulate:a", 0.0, 0.3)
+
+
+func _phase_caption(phase: int) -> String:
+	match phase:
+		SensoryCrimeLoop.Phase.OBSERVE: return " observing..."
+		SensoryCrimeLoop.Phase.OVERLOAD: return "Overload — sensory noise rising"
+		SensoryCrimeLoop.Phase.STIM: return "Stim — co-regulation available"
+		SensoryCrimeLoop.Phase.TUNE_IN: return "Tune-in — follow the scent"
+		SensoryCrimeLoop.Phase.RESOLVE: return "Resolve — clue available"
+		_: return ""
 
 
 func _update_disruption_overlay() -> void:
