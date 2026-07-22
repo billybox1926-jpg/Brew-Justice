@@ -34,18 +34,11 @@ This is an open invitation. The slice is small and the architecture is
 signal-driven and approachable — a good first open-source contribution if
 you care about games that respect how minds actually work.
 
-- **Good first issues** — small, self-contained starts:
-  [filter](https://github.com/billybox1926-jpg/Brew-Justice/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-  (#3 neon overlay, #5 WIRING doc, #6 chaos UI, #7 BandPass tune-in).
-- **Help wanted** — broader systems work:
-  [filter](https://github.com/billybox1926-jpg/Brew-Justice/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
-  (#8 presence listeners, #14 trail legibility, #17 cafe ambience).
-- **All issues** are organized into four
-  [milestones](https://github.com/billybox1926-jpg/Brew-Justice/milestones) with
-  parent/child structure. Start from an epic and read down.
-- Read [CONTRIBUTING.md](CONTRIBUTING.md) first (the one rule: accessibility
-  *is* the design), then the [wiki](https://github.com/billybox1926-jpg/Brew-Justice/wiki)
-  for how it's built.
+See [roadmap.md](roadmap.md) for milestones, issue highlights, and project layout.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first (the one rule: accessibility
+*is* the design), then the [wiki](https://github.com/billybox1926-jpg/Brew-Justice/wiki)
+for how it's built.
 
 ## The loop at a glance
 
