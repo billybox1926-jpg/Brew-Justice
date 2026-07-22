@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - ecosystem: github-actions
+    directory: /
+    target-branch: main
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - "type: chore"
+      - "area: tooling"
+    commit-message:
+      prefix: "chore(deps): "
+      include: "scope"
+    rebase-strategy: "auto"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
