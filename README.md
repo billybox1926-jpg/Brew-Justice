@@ -86,6 +86,8 @@ Two signals ride on top of the state:
           • Ambient light + NPC       (presence)              ┄ chaos throttles
 ```
 
+![BrewJustice system diagram](assets/brewjustice.svg)
+
 Everything is wired through signals, not tree-scans: `FocusModeMain` owns a
 reference to `stim` and reads `chaos`, and the meter/labels react to emitted
 changes. The Disruptor is inert until you connect its `chaos_pulse` to

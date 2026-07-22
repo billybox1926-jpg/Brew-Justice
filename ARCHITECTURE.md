@@ -36,6 +36,8 @@ StimTool ──rhythm_pulse──▶ FocusModeMain ──presence──▶ Obser
 Disruptor ─chaos_pulse──▶ FocusModeMain ──chaos────▶ DisruptionOverlay
 ```
 
+![System interaction diagram](assets/brewjustice.svg)
+
 Audio targets are set on `AudioBusManager` each frame; it glides lowpass/highpass
 and bandpass filter values from the scene’s state.
 
