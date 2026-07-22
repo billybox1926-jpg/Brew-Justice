@@ -17,10 +17,17 @@ const VIGNETTE_CALM_DRIVER: float = 0.04
 const VIGNETTE_EASE: float = 0.65
 const VIGNETTE_EDGE_TINT: Color = Color(0.55, 0.7, 0.95)
 const VIGNETTE_EDGE_TINT_STRENGTH: float = 0.35
+const TRAIL_BASE_WIDTH: float = 5.0
+const TRAIL_COLOR_NORMAL: Color = Color(0.82, 0.62, 0.18, 0.9)
+const TRAIL_COLOR_COLORBLIND: Color = Color(1.0, 0.95, 0.45, 0.95)
+const TRAIL_COLOR_DIM: Color = Color(0.55, 0.55, 0.55, 0.35)
+const TRAIL_FADE_NEAR_CLUE: float = 0.35
+const TRAIL_FADE_RESOLVED: float = 0.12
 
 @export var vignette_color: Color = Color(0.05, 0.03, 0.02)
 @export var trail_color: Color = Color(0.82, 0.62, 0.18)
 @export var highlight_color: Color = Color(1.0, 0.9, 0.6)
+var _palette: ColorPalette
 
 var presence: float = 0.5
 var chaos: float = 0.0
@@ -29,6 +36,38 @@ var calm: float = 0.5
 var trail_points: PackedVector2Array = PackedVector2Array()
 var bind_points: PackedVector2Array = PackedVector2Array()
 var tune_progress: float = 0.0
+var trail_help_visible: bool = true
+var trail_proximity: float = 0.0
+
+
+func _ready() -> void:
+	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	if pm and pm.has_signal("preferences_updated"):
+		pm.preferences_updated.connect(_on_preferences_updated)
+	_setup_palette()
+	if pm:
+		_apply_trail_prefs(pm)
+
+
+func _on_preferences_updated() -> void:
+	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	_apply_palette(pm)
+	_apply_trail_prefs(pm)
+
+
+func _setup_palette() -> void:
+	_apply_palette(get_node_or_null("/root/PreferencesManager"))
+
+
+func _apply_palette(pm: PreferencesManager) -> void:
+	var cb := false
+	if pm and pm.has_method("is_colorblind_mode"):
+		cb = pm.is_colorblind_mode()
+	var base := ColorPalette.new()
+	_palette = base
+	highlight_color = base.color_for("bind_highlight", cb)
+	queue_redraw_if_needed()
+
 
 func queue_redraw_if_needed() -> void:
 	if not is_inside_tree():
@@ -36,9 +75,34 @@ func queue_redraw_if_needed() -> void:
 	queue_redraw()
 
 
+func _is_colorblind() -> bool:
+	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	if pm and pm.has_method("is_colorblind_mode"):
+		return pm.is_colorblind_mode()
+	return false
+
+
+func _apply_trail_prefs(pm: PreferencesManager) -> void:
+	if pm:
+		trail_help_visible = bool(pm.trail_enabled)
+	queue_redraw_if_needed()
+
+
+func _computed_trail_color() -> Color:
+	var cb := _is_colorblind()
+	var base := TRAIL_COLOR_COLORBLIND if cb else TRAIL_COLOR_NORMAL
+	if tune_progress >= TRAIL_FADE_NEAR_CLUE or calm >= 0.72:
+		base = base.lerp(TRAIL_COLOR_DIM, clamp(calm * 1.2, 0.0, 1.0))
+	if tune_progress > 0.85:
+		base.a = min(base.a, TRAIL_FADE_RESOLVED)
+	return base
+
+
 func _draw() -> void:
 	_draw_vignette()
-	_draw_trail(trail_points, trail_color, 2.0 + presence * 3.0)
+	if trail_help_visible:
+		var width := maxf(TRAIL_BASE_WIDTH, 2.0 + presence * 3.0)
+		_draw_trail(trail_points, _computed_trail_color(), width)
 	_draw_bind_highlights()
 	_draw_clue_glow()
 
@@ -51,6 +115,8 @@ func _get_vignette_strength(presence: float, chaos: float, calm: float) -> float
 
 func _get_vignette_color(strength: float, calm: float) -> Color:
 	var col := vignette_color
+	if _palette:
+		col = _palette.color_for("vignette_tint", _is_colorblind())
 	col.a = clampf(VIGNETTE_ALPHA_BASE + strength * VIGNETTE_ALPHA_SPAN, VIGNETTE_ALPHA_MIN, VIGNETTE_ALPHA_MAX)
 	col = col.lerp(VIGNETTE_CHAOS_TINT, strength * VIGNETTE_WARMTH_BLEND + calm * VIGNETTE_CALM_WARMTH)
 	return col
@@ -124,6 +190,11 @@ func set_state(new_presence: float, new_chaos: float, new_tune_progress: float, 
 	chaos = clampf(new_chaos, 0.0, 1.0)
 	tune_progress = clampf(new_tune_progress, 0.0, 1.0)
 	calm = clampf(new_calm, 0.0, 1.0)
+	queue_redraw_if_needed()
+
+
+func set_trail_enabled_test_only(enabled: bool) -> void:
+	trail_help_visible = enabled
 	queue_redraw_if_needed()
 
 

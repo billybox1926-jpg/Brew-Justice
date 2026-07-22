@@ -636,3 +636,43 @@ func test_focus_mode_main_applies_colorblind_mode_from_prefs() -> void:
 		prefs.set_colorblind_mode(false)
 		main.call("_stl_colorblind_safe", "Baseline", label, true)
 		assert_true(prefs and not prefs.colorblind_mode, "Defaults should keep colorblind mode off")
+
+
+func test_preferences_manager_persists_trail_settings() -> void:
+	var prefs = PreferencesManager.new()
+	prefs.trail_enabled = false
+	prefs.trail_audio_cues = false
+	prefs.save()
+	var loaded = PreferencesManager.new()
+	assert_false(bool(loaded.trail_enabled), "Trail enabled should persist")
+	assert_false(bool(loaded.trail_audio_cues), "Trail audio cues should persist")
+
+
+func test_sensory_canvas_trail_toggles_with_prefs() -> void:
+	var canvas = SensoryCanvas.new()
+	canvas.trail_points = PackedVector2Array([Vector2(0, 0), Vector2(10, 10), Vector2(20, 0)])
+	assert_true(canvas.trail_help_visible, "Trail help should be enabled by default")
+	canvas.set_trail_enabled_test_only(false)
+	assert_false(canvas.trail_help_visible, "Canvas should hide trail when preference is disabled")
+
+
+func test_color_palette_returns_standard_and_colorblind_colors() -> void:
+	var palette = ColorPalette.new()
+	var normal = palette.color_for("trail", false)
+	var cb = palette.color_for("trail", true)
+	assert_almost_eq(normal.r, 0.82, 0.01)
+	assert_true(cb.r > normal.r, "Colorblind trail tint should be lighter for contrast")
+
+
+func test_sensory_canvas_uses_colorblind_trail_tint() -> void:
+	var canvas = SensoryCanvas.new()
+	canvas.trail_points = PackedVector2Array([Vector2(0, 0), Vector2(10, 10), Vector2(20, 0)])
+	canvas.set_state(0.5, 0.0, 0.0, 0.5)
+	var normal = canvas._computed_trail_color()
+	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	if pm:
+		pm.set_colorblind_mode(true)
+		canvas.call("_on_preferences_updated")
+		var cb = canvas._computed_trail_color()
+		assert_true(cb.v > normal.v, "Colorblind trail should be brighter in value")
+		pm.set_colorblind_mode(false)
