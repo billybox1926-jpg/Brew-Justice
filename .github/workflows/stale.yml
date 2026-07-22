@@ -1,0 +1,42 @@
+# Automatically close issues/PRs that have been inactive for 60 days,
+# after a 7-day grace period.
+# Exemptions:
+# - priority: critical
+# - status: blocked
+#
+# This helps keep the issue tracker tidy without closing active work.
+
+name: Close stale issues/PRs
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has
+            not had recent activity. It will be closed in 7 days if no further
+            activity occurs.
+          stale-pr-message: >
+            This PR has been automatically marked as stale because it has not
+            had recent activity. It will be closed in 7 days if no further
+            activity occurs.
+          close-issue-message: >
+            This issue was automatically closed after being stale for 7 days.
+            If this was closed in error, please reopen it.
+          close-pr-message: >
+            This PR was automatically closed after being stale for 7 days.
+            If this was closed in error, please reopen it.
+          days-before-stale: 60
+          days-before-close: 7
+          exempt-issue-labels: "priority: critical,status: blocked"
+          exempt-pr-labels: "priority: critical,status: blocked"
+          ascending: true
+          operations-per-run: 100

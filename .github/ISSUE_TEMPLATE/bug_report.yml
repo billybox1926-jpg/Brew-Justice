@@ -1,0 +1,66 @@
+name: Bug Report
+description: Create a report to help us identify and fix issues.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please fill out every section so we can reproduce and triage quickly.
+  - type: input
+    id: godot_version
+    attributes:
+      label: Godot version
+      description: Exact Godot version used, including the OS (Windows/Mac/Linux).
+      placeholder: "Godot 4.4 on Windows 11"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: Full OS name and version.
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps to trigger the issue reliably.
+      placeholder: |
+        1. Load `focus_mode.tscn`
+        2. Hold Space for 4 beats
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+    validations:
+      required: true
+  - type: dropdown
+    id: sensory_accessibility
+    attributes:
+      label: Does this affect sensory accessibility?
+      description: Does this impact visual, audio, vestibular, or input tolerance?
+      options:
+        - Yes
+        - No
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Screenshots, recordings, logs, or references to related issues/PRs.

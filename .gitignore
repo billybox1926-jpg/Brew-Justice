@@ -4,7 +4,7 @@
 # Godot-specific import artifacts (rebuilt from assets on open)
 *.import
 
-# Mono / C# (not used here, but standard to exclude if added later)
+# Mono / C# (not used here)
 .mono/
 data_*/
 mono_crash.*.json
@@ -31,3 +31,10 @@ build/
 exports/
 *.pck
 *.exe
+*.zip
+/*.export
+
+# Editor configs
+.vscode/
+.idea/
+*.tmp

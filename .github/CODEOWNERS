@@ -1,0 +1,9 @@
+# Project owner owns everything by default
+* @billybox1926-jpg
+
+# Godot scripts
+/vertical-slice/godot/scripts/ @billybox1926-jpg
+
+# Documentation
+/docs/ @billybox1926-jpg
+/.github/ @billybox1926-jpg

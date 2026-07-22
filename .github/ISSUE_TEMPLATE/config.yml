@@ -1,2 +1,5 @@
-name: Issue templates
-about: How new issues should be opened in this repo
+blank_issues_enabled: true
+contact_links:
+  - name: General Discussion
+    url: https://github.com/billybox1926-jpg/Brew-Justice/discussions
+    about: Ask questions, share ideas, or discuss sensory accessibility before filing an issue.
