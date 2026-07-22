@@ -1,0 +1,9 @@
+[resource]
+type="DisruptorProfile"
+id="echo_weaver"
+display_name="Echo Weaver"
+description="Rhythmic, wave-like fluctuations that pull focus off baseline."
+chaos_style="wave"
+base_chaos_rate=0.7
+chaos_variance=0.15
+color=Color(0.5, 1.0, 0.6)

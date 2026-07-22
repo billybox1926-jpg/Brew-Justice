@@ -182,19 +182,16 @@ func _setup_story_beat_overload() -> void:
 	transformer_variant.auditory_band = "low"
 	transformer_variant.lore_fragment = "A distant transformer hums through the wall."
 	story_beat_overload.variant_on_start = transformer_variant
-	if disruptor and disruptor.has_method("set_profile"):
-		var static_junkie = DisruptorProfile.new()
-		static_junkie.id = "static_junkie"
-		static_junkie.display_name = "Static Junkie"
-		static_junkie.description = "Sharp, erratic pulses."
-		static_junkie.chaos_style = "pulse"
-		static_junkie.base_chaos_rate = 0.9
-		static_junkie.chaos_variance = 0.1
-		static_junkie.color = Color(1.0, 0.3, 0.3)
-		disruptor.profile = static_junkie
+	_apply_disruptor_profile_for_active_clue()
 	add_child(story_beat_overload)
 	if sensory_crime_loop.has_signal("phase_changed"):
 		sensory_crime_loop.phase_changed.connect(story_beat_overload.on_phase_changed)
+		sensory_crime_loop.phase_changed.connect(_on_sensory_loop_phase_changed_for_profile)
+
+
+func _on_sensory_loop_phase_changed_for_profile(from: int, to: int) -> void:
+	if to == SensoryCrimeLoop.Phase.OVERLOAD:
+		_apply_disruptor_profile_for_active_clue()
 
 
 func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
@@ -204,6 +201,38 @@ func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
 		_show_caption(_phase_caption(to))
 	if to == SensoryCrimeLoop.Phase.TUNE_IN:
 		_start_next_clue()
+
+
+func _apply_disruptor_profile_for_active_clue() -> void:
+	if not disruptor or not evidence_board or not active_clue_id:
+		return
+	var data = evidence_board._graph.get(active_clue_id, null)
+	if not data:
+		return
+	var profile_id: String = ""
+	if data is ClueData:
+		profile_id = data.disruptor_profile_id
+	if not profile_id:
+		return
+	disruptor.profile = null
+	var candidate = _load_profile_from_manifest(profile_id)
+	if candidate:
+		disruptor.profile = candidate
+
+
+func _load_profile_from_manifest(profile_id: String) -> DisruptorProfile:
+	if not profile_id:
+		return null
+	var dir := "res://resources/disruptor_profiles/"
+	var file = "%s%s.tres" % [dir, profile_id]
+	if ResourceLoader.exists(file):
+		var loaded := load(file)
+		if loaded is DisruptorProfile and loaded.id == profile_id:
+			return loaded
+	var manifest := load("res://resources/disruptor_profiles.tres")
+	if manifest and manifest is DisruptorProfile and manifest.id == profile_id:
+		return manifest
+	return null
 
 
 

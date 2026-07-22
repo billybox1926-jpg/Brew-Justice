@@ -17,6 +17,7 @@ leads_to=["neon_symbol", "false_trail"]
 contradicts=[]
 combines_with=[]
 resolved_text="A faint tread pattern suggests heavier tires than the crash car."
+disruptor_profile_id="acoustic_bleed"
 
 [resource]
 
@@ -30,6 +31,7 @@ leads_to=["false_trail"]
 contradicts=["false_trail"]
 combines_with=["smudge_pattern"]
 resolved_text="The neon glyph matches a bar ten blocks east."
+disruptor_profile_id="overload_artist"
 
 [resource]
 

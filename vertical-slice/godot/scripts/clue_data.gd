@@ -17,3 +17,4 @@ enum ClueType { VISUAL, AUDITORY, TACTILE, OLFACTORY }
 @export var combines_with: Array[String] = []
 
 @export var resolved_text: String = ""
+@export var disruptor_profile_id: String = ""

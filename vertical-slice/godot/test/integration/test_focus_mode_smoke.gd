@@ -768,6 +768,24 @@ func test_focus_mode_resolve_routes_through_evidence_board() -> void:
 	main.call("_try_resolve_investigation")
 	assert_eq(signals.size(), 1, "EvidenceBoard.graph_progression_requested should fire once per active resolve")
 
+func test_focus_mode_main_applies_clue_profile_on_overload() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var active_signal = ""
+	main.evidence_board.deduction_progress.connect(func(progress: float, _text: String) -> void:
+		active_signal = "progress"
+	)
+	main.disruptor.profile_activated.connect(func(profile) -> void:
+		active_signal = profile.id
+	)
+	main.active_clue_id = "smudge"
+	main.investigation_phase = main.InvestigationPhase.TuneIn
+	main.call("_apply_disruptor_profile_for_active_clue")
+	assert_eq(main.disruptor.profile.id if main.disruptor.profile else "", "acoustic_bleed", "Active clue should map to its DisruptorProfile")
+	main.active_clue_id = "neon"
+	main.call("_apply_disruptor_profile_for_active_clue")
+	assert_eq(main.disruptor.profile.id if main.disruptor.profile else "", "overload_artist", "Neon clue should use overload_artist profile")
+
 
 func test_preferences_manager_startup_applies_custom_bindings() -> void:
 	var pm = PreferencesManager.new()

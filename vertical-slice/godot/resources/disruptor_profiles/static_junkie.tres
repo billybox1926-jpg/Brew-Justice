@@ -1,0 +1,9 @@
+[resource]
+type="DisruptorProfile"
+id="static_junkie"
+display_name="Static Junkie"
+description="Sharp, erratic pulses that spike the sensory meter quickly."
+chaos_style="pulse"
+base_chaos_rate=0.9
+chaos_variance=0.1
+color=Color(1.0, 0.3, 0.3)
