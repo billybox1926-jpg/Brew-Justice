@@ -5,12 +5,18 @@ signal speed_changed(speed: float)
 
 const CHAOS_SPEED := 4.0
 const CALM_SPEED := 1.8
+const STARTLE_MAX_DIST := 12.0
+const STARTLE_RECOVER_SEC := 0.35
 
 var animation_player: AnimationPlayer
 var _presence: float = 0.0
+var _startle_target: Vector2
+var _startle_timer: float = 0.0
+var _origin: Vector2
 
 func _enter_tree() -> void:
 	animation_player = get_node_or_null("AnimationPlayer")
+	_origin = position
 	if animation_player:
 		animation_player.speed_scale = CALM_SPEED
 	_setup_placeholder_animation()
@@ -53,4 +59,29 @@ func apply_presence(value: float) -> void:
 		if animation_player:
 			animation_player.speed_scale = new_speed
 		speed_changed.emit(new_speed)
+
+
+func apply_chaos_spike(intensity: float) -> void:
+	_startle_target = _origin + Vector2(randf_range(-STARTLE_MAX_DIST, STARTLE_MAX_DIST), 0.0)
+	_startle_timer = STARTLE_RECOVER_SEC
+	if animation_player and animation_player.has_animation("startled"):
+		animation_player.play("startled")
+		animation_player.speed_scale = CHAOS_SPEED
+
+
+func apply_chaos_if_supported(chaos_value: float) -> void:
+	if chaos_value >= 0.25:
+		apply_chaos_spike(chaos_value)
+
+
+func _process(delta: float) -> void:
+	if _startle_timer > 0.0:
+		_startle_timer = max(_startle_timer - delta, 0.0)
+		var t := 1.0 - (_startle_timer / STARTLE_RECOVER_SEC)
+		position = _origin.lerp(_startle_target, 1.0 - t)
+		if _startle_timer <= 0.0:
+			position = _origin
+			if animation_player and animation_player.has_animation("tap"):
+				animation_player.play("tap")
+				animation_player.speed_scale = lerp(CHAOS_SPEED, CALM_SPEED, smoothstep(0.0, 1.0, _presence))
 

@@ -50,6 +50,14 @@ const CHAOS_BAND_Q_MIN: float = 0.3
 const CHAOS_BAND_LERP_SCALE: float = 0.3
 const CHAOS_BAND_Q_LERP_SCALE: float = 0.5
 
+## World reactivity.
+const WORLD_CALM_CHATTER_MIN: float = 0.32
+const WORLD_CALM_CHATTER_MAX: float = 0.52
+const WORLD_CALM_ROOM_MIN: float = 0.18
+const WORLD_CALM_ROOM_MAX: float = 0.30
+
+var _world_calm: float = 0.0
+
 var _effects := {}
 var _cafe_player: AudioStreamPlayer
 var _cafe_playback: AudioStreamGeneratorPlayback

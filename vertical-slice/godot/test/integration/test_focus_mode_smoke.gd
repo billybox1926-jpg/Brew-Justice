@@ -694,3 +694,47 @@ func test_sensory_canvas_uses_colorblind_trail_tint() -> void:
 		var cb = canvas._computed_trail_color()
 		assert_true(cb.v > normal.v, "Colorblind trail should be brighter in value")
 		pm.set_colorblind_mode(false)
+
+
+func test_observer_light_chaos_flicker_sets_flicker_state() -> void:
+	var light_node = ObserverLight.new()
+	add_child_autofree(light_node)
+	var lamp = PointLight2D.new()
+	light_node.add_child(lamp)
+	light_node.lamp = lamp
+
+	light_node.apply_calm(0.9, 0.1)
+	assert_false(light_node.flicker_strength, "Flicker should be false during calm apply")
+	light_node.apply_chaos_spike(0.8)
+	assert_true(light_node.flicker_strength, "Chaos spike should set flicker_strength before next calm apply")
+
+
+func test_npc_regular_startle_resets_to_origin() -> void:
+	var npc = NpcRegular.new()
+	add_child_autofree(npc)
+	var anim = AnimationPlayer.new()
+	anim.name = "AnimationPlayer"
+	npc.add_child(anim)
+	var sprite = Sprite2D.new()
+	sprite.name = "NpcSprite"
+	npc.add_child(sprite)
+
+	npc._origin = npc.position
+	npc.apply_chaos_spike(0.6)
+	assert_true(npc._startle_timer > 0.0, "Chaos spike should start a startle timer")
+	var start_pos = npc.position
+	npc.call("_process", npc.STARTLE_RECOVER_SEC - 0.001)
+	assert_true((npc.position - start_pos).length() < 1e-3, "NPC should return near origin after recover")
+
+
+func test_focus_mode_main_world_listeners_updated_emits_presence() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var received = []
+	main.world_listeners_updated.connect(func(value: float) -> void:
+		received.append(value)
+	)
+	main.presence = 0.42
+	main.call("_update_world_listeners", 0.05)
+	assert_true(received.size() > 0, "world_listeners_updated should emit each frame from _update_world_listeners")
+	assert_almost_eq(received.back(), 0.42, 0.01, "world_listeners_updated should emit the current presence")

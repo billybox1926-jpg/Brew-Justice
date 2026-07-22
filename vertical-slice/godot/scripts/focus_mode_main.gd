@@ -436,6 +436,7 @@ func _update_world_listeners(delta: float) -> void:
 		observer_light.apply_calm(calm, delta)
 	if npc_regular:
 		npc_regular.apply_presence(presence)
+		npc_regular.apply_chaos_if_supported(chaos)
 	if smudge_resolver:
 		smudge_resolver.apply_presence(presence)
 	if neon_clue:
@@ -446,6 +447,8 @@ func _on_chaos(strength: float) -> void:
 	chaos = min(chaos + strength, 1.0)
 	_update_disruption_overlay()
 	_try_advance_investigation_on_chaos(strength)
+	if observer_light and observer_light.has_method("apply_chaos_spike"):
+		observer_light.apply_chaos_spike(clamp(strength, 0.0, 1.0))
 
 
 func _on_chaos_rich(strength: float, duration: float, band: String) -> void:
