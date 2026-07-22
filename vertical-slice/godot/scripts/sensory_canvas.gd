@@ -33,11 +33,16 @@ var presence: float = 0.5
 var chaos: float = 0.0
 var calm: float = 0.5
 
+signal trail_proximity(proximity: float)
+
 var trail_points: PackedVector2Array = PackedVector2Array()
 var bind_points: PackedVector2Array = PackedVector2Array()
 var tune_progress: float = 0.0
 var trail_help_visible: bool = true
-var trail_proximity: float = 0.0
+var _trail_proximity_threshold: float = 45.0
+
+const TRAIL_DRAW_WIDTH_MIN: float = 4.0
+const TRAIL_DRAW_WIDTH_PRESENCE_SCALE: float = 3.0
 
 
 func _ready() -> void:
@@ -206,3 +211,13 @@ func set_trail(new_points: PackedVector2Array) -> void:
 func set_bind_points(new_points: PackedVector2Array) -> void:
 	bind_points = new_points
 	queue_redraw_if_needed()
+
+
+func set_trail_target(target: Vector2) -> void:
+	if trail_points.is_empty():
+		return
+	var best: float = INF
+	for pt in trail_points:
+		best = minf(best, pt.distance_to(target))
+	var proximity := 1.0 - smoothstep(_trail_proximity_threshold, _trail_proximity_threshold + 30.0, best)
+	trail_proximity.emit(clampf(proximity, 0.0, 1.0))

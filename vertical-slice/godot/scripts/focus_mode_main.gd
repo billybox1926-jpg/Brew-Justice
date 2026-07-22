@@ -312,6 +312,8 @@ func _update_canvas(delta: float) -> void:
 	sensory_canvas.set_state(presence, chaos, 0.0 if investigation_phase != InvestigationPhase.TuneIn else int(investigation_emitted) + 0.0, smoothstep(0.0, 1.0, presence))
 	var trail := _computed_trail_points()
 	sensory_canvas.set_trail(trail)
+	if sensory_canvas.has_method("set_trail_target") and scene_view:
+		sensory_canvas.set_trail_target(scene_view.get_global_mouse_position())
 	var binds := PackedVector2Array()
 	var step := max(6, trail.size() / 8)
 	for i in range(0, trail.size(), step):

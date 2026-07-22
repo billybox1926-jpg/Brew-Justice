@@ -685,8 +685,14 @@ func test_color_palette_returns_standard_and_colorblind_colors() -> void:
 func test_sensory_canvas_uses_colorblind_trail_tint() -> void:
 	var canvas = SensoryCanvas.new()
 	canvas.trail_points = PackedVector2Array([Vector2(0, 0), Vector2(10, 10), Vector2(20, 0)])
-	canvas.set_state(0.5, 0.0, 0.0, 0.5)
-	var normal = canvas._computed_trail_color()
+	canvas.trail_help_visible = true
+	var received = []
+	canvas.trail_proximity.connect(func(value: float) -> void:
+		received.append(value)
+	)
+	canvas.call("set_trail_target", Vector2(11, 11))
+	assert_true(received.size() > 0, "trail_proximity should emit when trail target is near trail points")
+	assert_true(received.back() > 0.0, "trail_proximity should report nonzero proximity near the trail")
 	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
 	if pm:
 		pm.set_colorblind_mode(true)
