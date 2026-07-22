@@ -450,6 +450,15 @@ func test_audio_bus_manager_apply_chaos_band_shifts_targets() -> void:
 	assert_true(manager._target_band_cutoff > 1200.0 + 0.01, "High band should raise bandpass target cutoff")
 
 
+func test_audio_bus_manager_world_calm_updates_cafe_constants() -> void:
+	var manager = AudioBusManager.new()
+	add_child_autofree(manager)
+	manager._ready()
+	manager.set_world_calm(1.0)
+	assert_almost_eq(manager.CAFE_CHATTER_DRIVE, manager.WORLD_CALM_CHATTER_MAX, 0.01)
+	assert_almost_eq(manager.CAFE_ROOM_MIX, manager.WORLD_CALM_ROOM_MAX, 0.01)
+
+
 func test_focus_mode_main_rich_chaos_applies_audio_band() -> void:
 	var scene = load("res://scenes/focus_mode.tscn").instantiate()
 	var main = scene

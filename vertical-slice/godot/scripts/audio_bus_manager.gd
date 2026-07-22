@@ -291,3 +291,14 @@ func _generate_sample() -> float:
 	var clink := _clink_amp * env * 0.28 * sin(TAU * randf_range(3200.0, 6200.0) * _time)
 	return clampf(room + chatter + clink, -1.0, 1.0)
 
+
+func set_world_calm(calm: float) -> void:
+	if not _cafe_player:
+		return
+	var safe_calm := clampf(calm, 0.0, 1.0)
+	var chatter := lerpf(WORLD_CALM_CHATTER_MIN, WORLD_CALM_CHATTER_MAX, safe_calm)
+	var room := lerpf(WORLD_CALM_ROOM_MIN, WORLD_CALM_ROOM_MAX, safe_calm)
+	CAFE_CHATTER_DRIVE = chatter
+	CAFE_ROOM_MIX = room
+
+var ambient_bus_index: int = -1

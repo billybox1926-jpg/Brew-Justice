@@ -443,6 +443,8 @@ func _update_world_listeners(delta: float) -> void:
 		smudge_resolver.apply_presence(presence)
 	if neon_clue:
 		neon_clue.apply_presence(presence)
+	if audio_manager and audio_manager.has_method("set_world_calm"):
+		audio_manager.set_world_calm(calm)
 
 
 func _on_chaos(strength: float) -> void:
