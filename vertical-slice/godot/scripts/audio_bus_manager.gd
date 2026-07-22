@@ -197,14 +197,25 @@ func update_targets(mode: String, stim_holding: bool, tune_active: bool, focus_a
 func apply_chaos_band(band: String, intensity: float) -> void:
 	if intensity <= 0.0:
 		return
+	var prefs := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	var cb = _load_colorblind_bias(prefs)
 	var base_cutoff := CHAOS_BAND_DEFAULT_CUTOFF
 	match band:
 		"low":    base_cutoff = CHAOS_BAND_LOW_CUTOFF
 		"mid":    base_cutoff = CHAOS_BAND_MID_CUTOFF
 		"high":   base_cutoff = CHAOS_BAND_HIGH_CUTOFF
 		_:        base_cutoff = CHAOS_BAND_DEFAULT_CUTOFF
-	_target_band_cutoff = lerpf(_target_band_cutoff, base_cutoff, intensity * CHAOS_BAND_LERP_SCALE)
+	var biased_cutoff = cb(base_cutoff, band, intensity)
+	_target_band_cutoff = lerpf(_target_band_cutoff, biased_cutoff, intensity * CHAOS_BAND_LERP_SCALE)
 	_target_band_q = lerpf(_target_band_q, maxf(_target_band_q, CHAOS_BAND_Q_MIN), intensity * CHAOS_BAND_Q_LERP_SCALE)
+
+
+static func _load_colorblind_bias(prefs: PreferencesManager) -> Callable:
+	if prefs and prefs.has_method("is_colorblind_mode") and prefs.is_colorblind_mode():
+		return func(base: float, _band: String, _intensity: float) -> float:
+				return base * 0.85
+	return func(base: float, _band: String, _intensity: float) -> float:
+		return base
 
 
 func _glide_filters(delta: float) -> void:

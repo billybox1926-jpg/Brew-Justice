@@ -27,6 +27,8 @@ var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
 var story_beat_overload: StoryBeat
 
+var _prefs: PreferencesManager
+
 
 var sensory := 18.0
 var focus_active := false
@@ -132,6 +134,7 @@ func _ready() -> void:
 	_setup_investigation_beat()
 	_setup_investigation_ui()
 	_setup_sensory_crime_loop()
+	_setup_preferences()
 	disruption_overlay = disruption_overlay_node
 	if disruptor:
 		if disruptor.has_signal("chaos_pulse_rich"):
@@ -483,6 +486,13 @@ func _setup_investigation_ui() -> void:
 		reset_requested.connect(_reset_investigation)
 
 
+func _setup_preferences() -> void:
+	_prefs = get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	if _prefs:
+		if _prefs.has_signal("preferences_updated"):
+			_prefs.preferences_updated.connect(_on_preferences_updated)
+
+
 func _on_beat_resolved(insight_text: String) -> void:
 	if investigation_ui:
 		investigation_ui.show_insight(insight_text)
@@ -596,6 +606,14 @@ func _setup_ui() -> void:
 		tire_smudge.texture = preload("res://assets/sprites/tire_smudge.png")
 	if tire_clue:
 		tire_clue.texture = preload("res://assets/sprites/tire_clue.png")
+	if _prefs:
+		_apply_colorblind_mode(_prefs.colorblind_mode)
+
+
+func _on_preferences_updated() -> void:
+	if not _prefs:
+		return
+	_apply_colorblind_mode(_prefs.colorblind_mode)
 
 
 func _update_ui() -> void:
@@ -635,19 +653,20 @@ func _update_ui() -> void:
 
 
 func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
-	if is_focused:
-		label.add_theme_font_size_override("font_size", 16)
-		label.add_theme_color_override("font_color", Color(0.251, 0.549, 0.753))
-		label.text = "%s · %s — %.0f%%" % ["FOCUS", mode, sensory]
-	else:
+	if not _prefs or not _prefs.colorblind_mode:
 		label.add_theme_font_size_override("font_size", 14)
-		label.text = "%s · %s — %0.f%%" % [FOCUS_TEXT_INACTIVE, mode, sensory]
-		if mode == METER_MODE_BASELINE:
-			label.add_theme_color_override("font_color", Color(0.518, 0.506, 0.471))
-		elif mode == METER_MODE_HYPERFOCUS:
-			label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.2))
-		else:
-			label.add_theme_color_override("font_color", Color(0.96, 0.27, 0.24))
+		label.text = "%s · %s — %0.f%%" % [FOCUS_TEXT_INACTIVE if not is_focused else "FOCUS", mode, sensory]
+		if not is_focused:
+			if mode == METER_MODE_BASELINE:
+				label.add_theme_color_override("font_color", Color(0.518, 0.506, 0.471))
+			elif mode == METER_MODE_HYPERFOCUS:
+				label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.2))
+			else:
+				label.add_theme_color_override("font_color", Color(0.96, 0.27, 0.24))
+		return
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
+	label.text = "%s · %s — %.0f%%" % [FOCUS_TEXT_ACTIVE if is_focused else FOCUS_TEXT_INACTIVE, mode, sensory]
 
 
 static func maxf(a: float, b: float) -> float:

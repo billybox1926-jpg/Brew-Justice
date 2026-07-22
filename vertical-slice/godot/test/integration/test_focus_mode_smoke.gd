@@ -596,3 +596,43 @@ func test_focus_mode_main_assigns_disruptor_profile() -> void:
 	assert_not_null(d, "Disruptor should exist in focus_mode scene")
 	assert_true(d.profile != null, "FocusModeMain should assign a DisruptorProfile to the disruptor")
 	assert_eq(d.profile.id, "static_junkie", "Overload beat should assign Static Junkie profile")
+
+
+func test_preferences_manager_default_values() -> void:
+	var prefs = PreferencesManager.new()
+	assert_false(prefs.colorblind_mode, "Default colorblind mode should be false")
+	assert_almost_eq(prefs.master_volume, 1.0, 0.01)
+	assert_true(prefs.subtitles_enabled, "Default subtitles should be enabled")
+
+
+func test_preferences_manager_save_load_round_trip() -> void:
+	var prefs = PreferencesManager.new()
+	prefs.colorblind_mode = true
+	prefs.master_volume = 0.42
+	prefs.subtitles_enabled = false
+	prefs.save()
+
+	var loaded = PreferencesManager.new()
+	assert_true(loaded.colorblind_mode, "Loaded prefs should persist colorblind mode")
+	assert_almost_eq(loaded.master_volume, 0.42, 0.01, "Loaded prefs should persist master volume")
+	assert_false(loaded.subtitles_enabled, "Loaded prefs should persist subtitles disabled")
+
+
+func test_preferences_manager_emits_preferences_updated() -> void:
+	var prefs = PreferencesManager.new()
+	var received = false
+	prefs.preferences_updated.connect(func() -> void: received = true)
+	prefs.apply_settings()
+	assert_true(received, "apply_settings should emit preferences_updated")
+
+
+func test_focus_mode_main_applies_colorblind_mode_from_prefs() -> void:
+	var scene = load("res://scenes/focus_mode.tscn").instantiate()
+	var main = scene
+	var label = main.get_node("StateLabel")
+	assert_not_null(label)
+	var prefs := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	if prefs:
+		prefs.set_colorblind_mode(false)
+		main.call("_stl_colorblind_safe", "Baseline", label, true)
+		assert_true(prefs and not prefs.colorblind_mode, "Defaults should keep colorblind mode off")

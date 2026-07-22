@@ -7,6 +7,10 @@
 config/name="Brew & Justice"
 config/features=PackedStringArray("4.4", "CGFloat")
 
+[autoload]
+
+PreferencesManager="*res://autoloads/preferences_manager.gd"
+
 [display]
 
 window/size/viewport_width=1280
