@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Clean up lingering ports
+        run: node scripts/cleanup-ports.mjs 6000
 
       - name: Download Godot 4.4 Linux
         run: |
