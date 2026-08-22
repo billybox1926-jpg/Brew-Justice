@@ -34,6 +34,8 @@ var _state: Node
 var focus_fade: FocusTransitionFade
 ## Ambient duck while key audio plays (issue #51).
 var audio_ducker: AudioDucker
+## Visual beat indicator for deaf/HoH players (issue #49).
+var beat_pulsar: BeatPulsar
 ## Opt-in narration for insight text (issue #46); speaks only when
 ## PreferencesManager.tts_enabled is true.
 var _narrative_tts: NarrativeTTS
@@ -172,12 +174,21 @@ func _ready() -> void:
 	_setup_sensory_crime_loop()
 	_setup_preferences()
 	_setup_game_state()
+	_apply_rhythm_timing()
 	focus_fade = FocusTransitionFade.new()
 	focus_fade.name = "FocusTransitionFade"
 	add_child(focus_fade)
 	audio_ducker = AudioDucker.new()
 	audio_ducker.name = "AudioDucker"
 	add_child(audio_ducker)
+	beat_pulsar = BeatPulsar.new()
+	beat_pulsar.name = "BeatPulsar"
+	add_child(beat_pulsar)
+	# Synced to the same emission as the stim rhythm audio (issue #49).
+	stim.rhythm_pulse.connect(beat_pulsar.on_beat)
+	var prefs_for_pulsar := get_node_or_null("/root/PreferencesManager")
+	if prefs_for_pulsar:
+		beat_pulsar.enabled = bool(prefs_for_pulsar.beat_pulsar_enabled)
 	disruption_overlay = disruption_overlay_node
 	if disruptor:
 		if disruptor.has_signal("chaos_pulse"):
@@ -896,6 +907,15 @@ func _on_preferences_updated() -> void:
 		return
 	_apply_colorblind_mode(_prefs.colorblind_mode)
 	_apply_reduced_motion()
+	_apply_rhythm_timing()
+	if beat_pulsar:
+		beat_pulsar.enabled = bool(_prefs.beat_pulsar_enabled)
+
+
+## Rhythm tolerance (issue #47): push the timing mode into the stim tool.
+func _apply_rhythm_timing() -> void:
+	if stim and _prefs:
+		stim.timing_mode = str(_prefs.rhythm_timing)
 
 
 func _update_ui() -> void:
@@ -991,7 +1011,3 @@ func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
 		"%s · %s — %.0f%%"
 		% [FOCUS_TEXT_ACTIVE if is_focused else FOCUS_TEXT_INACTIVE, mode, sensory]
 	)
-
-
-static func maxf(a: float, b: float) -> float:
-	return a if a > b else b
