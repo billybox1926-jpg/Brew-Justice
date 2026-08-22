@@ -8,6 +8,8 @@ class_name InvestigationUI
 
 var label: Label
 var tween: Tween
+## Vestibular safety (issue #44): skip the scale-zoom; fade opacity only.
+var reduced_motion: bool = false
 var _current_text: String = ""
 
 
@@ -28,7 +30,10 @@ func show_insight(text: String) -> void:
 	label.text = text
 	label.visible = true
 	label.modulate.a = 0.0
-	label.scale = Vector2(0.005, 0.005)
+	if reduced_motion:
+		label.scale = Vector2.ONE
+	else:
+		label.scale = Vector2(0.005, 0.005)
 	_restart_fade_sequence()
 
 
@@ -44,8 +49,11 @@ func _restart_fade_sequence() -> void:
 		tween.kill()
 	tween = create_tween()
 	tween.set_trans(Tween.TRANS_SINE)
-	tween.tween_property(label, "scale", Vector2(1.0, 1.0), fade_in_duration)
-	tween.parallel().tween_property(label, "modulate:a", 1.0, fade_in_duration)
+	if reduced_motion:
+		tween.tween_property(label, "modulate:a", 1.0, fade_in_duration)
+	else:
+		tween.tween_property(label, "scale", Vector2(1.0, 1.0), fade_in_duration)
+		tween.parallel().tween_property(label, "modulate:a", 1.0, fade_in_duration)
 	tween.tween_interval(hold_duration)
 	tween.tween_property(label, "modulate:a", 0.0, fade_out_duration)
 	tween.tween_callback(
