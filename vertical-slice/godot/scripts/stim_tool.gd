@@ -22,6 +22,7 @@ var beat_clock := 0.0
 var beat_prev := 1.0
 var chaos := 0.0  # sensory static; raised by disruptors, decays on its own
 
+
 func press() -> void:
 	if cooldown > 0.0:
 		return

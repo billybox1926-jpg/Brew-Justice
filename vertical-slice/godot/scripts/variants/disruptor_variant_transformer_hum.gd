@@ -1,5 +1,6 @@
 extends DisruptorVariant
 
+
 ## "Distant transformer hum" — a low, constant mechanical drone that
 ## penetrates the room regardless of the player's focus state.
 func _init() -> void:
@@ -9,4 +10,3 @@ func _init() -> void:
 	interval = 4.0
 	auditory_band = "low"
 	lore_text = "A distant transformer hums through the wall."
-

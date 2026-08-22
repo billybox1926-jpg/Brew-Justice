@@ -1,5 +1,6 @@
 extends DisruptorVariant
 
+
 ## "Random spike" — irregular, sharp static strokes with no clear period.
 ## Feels like a release valve blowing off steam or a loose connection.
 func _init() -> void:
@@ -9,4 +10,3 @@ func _init() -> void:
 	interval = 5.0
 	auditory_band = "high"
 	lore_text = "A sharp static snaps the air every few seconds."
-

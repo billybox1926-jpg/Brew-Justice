@@ -122,8 +122,12 @@ func _get_vignette_color(strength: float, calm: float) -> Color:
 	var col := vignette_color
 	if _palette:
 		col = _palette.color_for("vignette_tint", _is_colorblind())
-	col.a = clampf(VIGNETTE_ALPHA_BASE + strength * VIGNETTE_ALPHA_SPAN, VIGNETTE_ALPHA_MIN, VIGNETTE_ALPHA_MAX)
-	col = col.lerp(VIGNETTE_CHAOS_TINT, strength * VIGNETTE_WARMTH_BLEND + calm * VIGNETTE_CALM_WARMTH)
+	col.a = clampf(
+		VIGNETTE_ALPHA_BASE + strength * VIGNETTE_ALPHA_SPAN, VIGNETTE_ALPHA_MIN, VIGNETTE_ALPHA_MAX
+	)
+	col = col.lerp(
+		VIGNETTE_CHAOS_TINT, strength * VIGNETTE_WARMTH_BLEND + calm * VIGNETTE_CALM_WARMTH
+	)
 	return col
 
 
@@ -167,12 +171,14 @@ func _draw_bind_highlights() -> void:
 			0:
 				draw_circle(p, size, c)
 			1:
-				var pts := PackedVector2Array([
-					p + Vector2(0, -size),
-					p + Vector2(size, 0),
-					p + Vector2(0, size),
-					p + Vector2(-size, 0),
-				])
+				var pts := PackedVector2Array(
+					[
+						p + Vector2(0, -size),
+						p + Vector2(size, 0),
+						p + Vector2(0, size),
+						p + Vector2(-size, 0),
+					]
+				)
 				draw_colored_polygon(pts, c)
 			2:
 				var half := size * 0.707
@@ -190,7 +196,9 @@ func _draw_clue_glow() -> void:
 	draw_rect(Rect2(0, 0, size.x, size.y), col)
 
 
-func set_state(new_presence: float, new_chaos: float, new_tune_progress: float, new_calm: float) -> void:
+func set_state(
+	new_presence: float, new_chaos: float, new_tune_progress: float, new_calm: float
+) -> void:
 	presence = clampf(new_presence, 0.0, 1.0)
 	chaos = clampf(new_chaos, 0.0, 1.0)
 	tune_progress = clampf(new_tune_progress, 0.0, 1.0)
@@ -219,5 +227,7 @@ func set_trail_target(target: Vector2) -> void:
 	var best: float = INF
 	for pt in trail_points:
 		best = minf(best, pt.distance_to(target))
-	var proximity := 1.0 - smoothstep(_trail_proximity_threshold, _trail_proximity_threshold + 30.0, best)
+	var proximity := (
+		1.0 - smoothstep(_trail_proximity_threshold, _trail_proximity_threshold + 30.0, best)
+	)
 	trail_proximity.emit(clampf(proximity, 0.0, 1.0))

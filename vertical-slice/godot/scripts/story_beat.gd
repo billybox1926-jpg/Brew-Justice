@@ -29,6 +29,7 @@ signal beat_ended(beat_name: String)
 var _active: bool = false
 var _last_phase: int = -1
 
+
 func _ready() -> void:
 	if not disruptor:
 		push_warning("StoryBeat: no Disruptor assigned for beat '%s'" % beat_name)

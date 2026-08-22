@@ -48,7 +48,8 @@ func _restart_fade_sequence() -> void:
 	tween.parallel().tween_property(label, "modulate:a", 1.0, fade_in_duration)
 	tween.tween_interval(hold_duration)
 	tween.tween_property(label, "modulate:a", 0.0, fade_out_duration)
-	tween.tween_callback(func() -> void:
-		label.visible = label.modulate.a > 0.01
-		return
+	tween.tween_callback(
+		func() -> void:
+			label.visible = label.modulate.a > 0.01
+			return
 	)

@@ -45,6 +45,7 @@ func _init() -> void:
 
 # ---------------------------------------------------------------- 1
 
+
 func _test_preferences() -> void:
 	var pm: Node = load("res://autoloads/preferences_manager.gd").new()
 	root.add_child(pm)
@@ -59,8 +60,10 @@ func _test_preferences() -> void:
 	var pm2: Node = load("res://autoloads/preferences_manager.gd").new()
 	root.add_child(pm2)
 	pm2.call("load_or_create_defaults")
-	_check(pm2.get("colorblind_mode") == (not original),
-		"saved colorblind_mode survives save/load round-trip")
+	_check(
+		pm2.get("colorblind_mode") == (not original),
+		"saved colorblind_mode survives save/load round-trip"
+	)
 	# Restore.
 	pm.call("set_colorblind_mode", original)
 	pm.call("save")
@@ -69,6 +72,7 @@ func _test_preferences() -> void:
 
 
 # ---------------------------------------------------------------- 2
+
 
 func _test_audio_calm() -> void:
 	var abm: Node = load("res://scripts/audio_bus_manager.gd").new()
@@ -90,18 +94,20 @@ func _test_audio_calm() -> void:
 	_check(room_zero != room_calm, "room mix differs between calm extremes")
 	# Out-of-range input is clamped, not rejected.
 	abm.call("set_world_calm", 5.0)
-	_check(absf(abm.get("_room_mix") - room_zero) < 0.0001, "set_world_calm clamps out-of-range input")
+	_check(
+		absf(abm.get("_room_mix") - room_zero) < 0.0001, "set_world_calm clamps out-of-range input"
+	)
 	abm.queue_free()
 
 
 # ---------------------------------------------------------------- 3
 
+
 func _test_evidence_board() -> void:
 	var board: Node = load("res://scripts/evidence_board.gd").new()
 	root.add_child(board)
 	var progressed: Array[String] = []
-	board.connect("graph_progression_requested", func(id: String) -> void:
-		progressed.append(id))
+	board.connect("graph_progression_requested", func(id: String) -> void: progressed.append(id))
 	var clue := ClueData.new()
 	clue.clue_id = "test_clue"
 	clue.clue_name = "Test Clue"
@@ -113,8 +119,10 @@ func _test_evidence_board() -> void:
 	root.add_child(resolver)
 	board.call("register_clue", clue, resolver)
 	board.call("resolve_clue", "test_clue")
-	_check(progressed.size() == 1 and progressed[0] == "test_clue",
-		"resolve_clue emits graph_progression_requested with the clue id")
+	_check(
+		progressed.size() == 1 and progressed[0] == "test_clue",
+		"resolve_clue emits graph_progression_requested with the clue id"
+	)
 	board.call("resolve_clue", "nonexistent")
 	_check(progressed.size() == 2, "resolve of unknown id still routes through the signal")
 	board.queue_free()
@@ -122,12 +130,12 @@ func _test_evidence_board() -> void:
 
 # ---------------------------------------------------------------- 4
 
+
 func _test_trail_proximity() -> void:
 	var canvas: Node = load("res://scripts/sensory_canvas.gd").new()
 	root.add_child(canvas)
 	var received: Array[float] = []
-	canvas.connect("trail_proximity", func(p: float) -> void:
-		received.append(p))
+	canvas.connect("trail_proximity", func(p: float) -> void: received.append(p))
 	var pts := PackedVector2Array([Vector2(100, 100), Vector2(200, 200)])
 	canvas.call("set_trail", pts)
 	canvas.call("set_trail_target", Vector2(102, 100))
@@ -144,6 +152,7 @@ func _test_trail_proximity() -> void:
 
 
 # ---------------------------------------------------------------- 5
+
 
 func _test_missing_bus_fallback() -> void:
 	# Simulate a hostile audio environment: no SFX bus exists yet. The manager

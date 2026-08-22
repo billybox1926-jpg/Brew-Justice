@@ -3,6 +3,7 @@ extends SceneTree
 ## Headless smoke runner: instantiates the real focus-mode scene, steps a few
 ## frames, pokes core signals, and reports PASS/FAIL on stdout (issue #36).
 
+
 func _init() -> void:
 	var failures: Array[String] = []
 	var scene_res := load("res://scenes/focus_mode.tscn")
@@ -15,10 +16,14 @@ func _init() -> void:
 	for i in range(12):
 		await process_frame
 	# Structural checks mirroring test_focus_mode_smoke.gd's before_each.
-	for node_path in ["Disruptor", "DisruptionOverlay", "ObserverLight", "NpcRegular", "AmbientAudio"]:
+	for node_path in [
+		"Disruptor", "DisruptionOverlay", "ObserverLight", "NpcRegular", "AmbientAudio"
+	]:
 		if scene.find_child(node_path, true, false) == null:
 			failures.append("missing node: " + node_path)
-	for sig in ["reset_requested", "investigation_passed", "world_listeners_updated", "calm_changed"]:
+	for sig in [
+		"reset_requested", "investigation_passed", "world_listeners_updated", "calm_changed"
+	]:
 		if not scene.has_signal(sig):
 			failures.append("missing signal: " + sig)
 	var ambient := scene.find_child("AmbientAudio", true, false) as AudioStreamPlayer2D

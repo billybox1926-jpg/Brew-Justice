@@ -79,6 +79,11 @@ jobs:
             --script res://test/test_wiring_doc.gd 2>&1 | tee wiring.log
           grep -q "WIRING PASS" wiring.log
 
+      - name: GDScript format + lint (gdformat/gdlint)
+        run: |
+          python -m pip install --quiet "gdtoolkit==4.*"
+          bash scripts/check_gdscript.sh
+
       - name: Upload test logs on failure
         if: failure()
         uses: actions/upload-artifact@v4

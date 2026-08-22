@@ -1,0 +1,15 @@
+# Pre-commit hooks for Brew & Justice (optional, issue #41).
+# Install:  pip install pre-commit && pre-commit install
+# Run all:  pre-commit run --all-files
+#
+# CI runs the same checks via scripts/check_gdscript.sh in godot.yml,
+# so hooks are a convenience, not a requirement.
+
+repos:
+  - repo: https://github.com/Scony/godot-gdscript-toolkit
+    rev: 4.5.0
+    hooks:
+      - id: gdformat
+        files: ^vertical-slice/godot/.*\.gd$
+      - id: gdlint
+        files: ^vertical-slice/godot/(scripts|autoloads|resources)/.*\.gd$

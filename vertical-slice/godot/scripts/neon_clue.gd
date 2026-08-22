@@ -7,6 +7,7 @@ var _presence: float = 0.0
 var _material: Material
 @export var clue_data: ClueData
 
+
 func _ready() -> void:
 	_resolve_material()
 

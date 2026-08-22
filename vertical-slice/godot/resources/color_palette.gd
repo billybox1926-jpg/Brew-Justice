@@ -30,22 +30,41 @@ class_name BrewColorPalette
 func color_for(name: String, colorblind: bool) -> Color:
 	var key := ("cb_" if colorblind else "") + name
 	match key:
-		"calm": return calm
-		"overload": return overload
-		"trail": return trail
-		"clue_resolved": return clue_resolved
-		"clue_red_herring": return clue_red_herring
-		"chaos_pulse": return chaos_pulse
-		"vignette_tint": return vignette_tint
-		"neon_edge": return neon_edge
-		"bind_highlight": return bind_highlight
-		"cb_calm": return cb_calm
-		"cb_overload": return cb_overload
-		"cb_trail": return cb_trail
-		"cb_clue_resolved": return cb_clue_resolved
-		"cb_clue_red_herring": return cb_clue_red_herring
-		"cb_chaos_pulse": return cb_chaos_pulse
-		"cb_vignette_tint": return cb_vignette_tint
-		"cb_neon_edge": return cb_neon_edge
-		"cb_bind_highlight": return cb_bind_highlight
-		_: return Color.WHITE
+		"calm":
+			return calm
+		"overload":
+			return overload
+		"trail":
+			return trail
+		"clue_resolved":
+			return clue_resolved
+		"clue_red_herring":
+			return clue_red_herring
+		"chaos_pulse":
+			return chaos_pulse
+		"vignette_tint":
+			return vignette_tint
+		"neon_edge":
+			return neon_edge
+		"bind_highlight":
+			return bind_highlight
+		"cb_calm":
+			return cb_calm
+		"cb_overload":
+			return cb_overload
+		"cb_trail":
+			return cb_trail
+		"cb_clue_resolved":
+			return cb_clue_resolved
+		"cb_clue_red_herring":
+			return cb_clue_red_herring
+		"cb_chaos_pulse":
+			return cb_chaos_pulse
+		"cb_vignette_tint":
+			return cb_vignette_tint
+		"cb_neon_edge":
+			return cb_neon_edge
+		"cb_bind_highlight":
+			return cb_bind_highlight
+		_:
+			return Color.WHITE

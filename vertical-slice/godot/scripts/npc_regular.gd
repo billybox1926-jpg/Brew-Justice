@@ -14,6 +14,7 @@ var _startle_target: Vector2
 var _startle_timer: float = 0.0
 var _origin: Vector2
 
+
 func _enter_tree() -> void:
 	animation_player = get_node_or_null("AnimationPlayer")
 	_origin = position
@@ -45,6 +46,7 @@ func _setup_placeholder_animation() -> void:
 	lib.add_animation("tap", anim)
 	animation_player.add_animation_library("", lib)
 	animation_player.play("tap")
+
 
 func apply_presence(value: float) -> void:
 	_presence = clamp(value, 0.0, 1.0)
@@ -83,5 +85,6 @@ func _process(delta: float) -> void:
 			position = _origin
 			if animation_player and animation_player.has_animation("tap"):
 				animation_player.play("tap")
-				animation_player.speed_scale = lerp(CHAOS_SPEED, CALM_SPEED, smoothstep(0.0, 1.0, _presence))
-
+				animation_player.speed_scale = lerp(
+					CHAOS_SPEED, CALM_SPEED, smoothstep(0.0, 1.0, _presence)
+				)

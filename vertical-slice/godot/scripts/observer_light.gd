@@ -26,6 +26,7 @@ var prev_guarded := false
 var _base_energy: float = 0.6
 var _base_color: Color = Color(0.6, 0.6, 0.8)
 
+
 func _enter_tree() -> void:
 	_find_nodes()
 	if lamp:
@@ -56,12 +57,16 @@ func _apply_state(calm: float, delta: float) -> void:
 	if not lamp:
 		return
 	var t := smoothstep(0.005, 1.0, clamp(calm, 0.0, 1.0))
-	lamp.color = lamp.color.lerp(lamp_color_base.lerp(lamp_color_warm, t * 0.75), min(delta * 3.5, 1.0))
+	lamp.color = lamp.color.lerp(
+		lamp_color_base.lerp(lamp_color_warm, t * 0.75), min(delta * 3.5, 1.0)
+	)
 	if flicker_strength:
 		lamp.color = lamp.color.lerp(Color(0.55, 0.6, 0.75), min(delta * 12.0, 1.0))
 		lamp.energy = lerp(lamp.energy, CHAOS_FLICKER_ENERGY_MIN, min(delta * 14.0, 1.0))
 	else:
-		lamp.energy = lerp(lamp.energy, lerp(lamp_energy_base, lamp_energy_warm, t), min(delta * 3.5, 1.0))
+		lamp.energy = lerp(
+			lamp.energy, lerp(lamp_energy_base, lamp_energy_warm, t), min(delta * 3.5, 1.0)
+		)
 	lamp.texture_scale = lerp(lamp.texture_scale, 1.0 + t * 0.35, min(delta * 2.8, 1.0))
 	lamp.shadow_enabled = t > 0.55
 	if occluder:
@@ -72,6 +77,8 @@ func apply_chaos_spike(intensity: float) -> void:
 	if not lamp:
 		return
 	flicker_strength = true
-	var energy_target := lerpf(CHAOS_FLICKER_ENERGY_MAX, CHAOS_FLICKER_ENERGY_MIN, clamp(intensity, 0.0, 1.0))
+	var energy_target := lerpf(
+		CHAOS_FLICKER_ENERGY_MAX, CHAOS_FLICKER_ENERGY_MIN, clamp(intensity, 0.0, 1.0)
+	)
 	lamp.energy = lerpf(lamp.energy, energy_target, 0.6)
 	lamp.texture_scale = lerpf(lamp.texture_scale, 0.92, 0.6)
