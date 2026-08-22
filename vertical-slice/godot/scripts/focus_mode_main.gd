@@ -178,6 +178,7 @@ func _ready() -> void:
 	_setup_game_state()
 	_apply_rhythm_timing()
 	_setup_controller_bindings()
+	_setup_calibration()
 	focus_fade = FocusTransitionFade.new()
 	focus_fade.name = "FocusTransitionFade"
 	add_child(focus_fade)
@@ -930,6 +931,41 @@ func _setup_controller_bindings() -> void:
 	bindings.apply_default_joy_bindings()
 	if _prefs:
 		ControllerBindings.apply_saved_joy_bindings(_prefs)
+
+
+## Sensory calibration (issue #48): first run opens the pacing picker;
+## the chosen pacing scales disruptor intensity and interval. Skippable.
+var calibration: SensoryCalibration
+
+
+func _setup_calibration() -> void:
+	calibration = SensoryCalibration.new()
+	calibration.name = "SensoryCalibration"
+	add_child(calibration)
+	if _prefs:
+		if not bool(_prefs.calibration_done):
+			calibration.open()
+			calibration.finished.connect(_on_calibrated)
+		_apply_sensory_pacing()
+
+
+func _on_calibrated(_pacing: String) -> void:
+	_apply_sensory_pacing()
+
+
+func _apply_sensory_pacing() -> void:
+	if _prefs == null or disruptor == null:
+		return
+	var factors: Dictionary = SensoryCalibration.factors_for(str(_prefs.sensory_pacing))
+	if disruptor.variant:
+		disruptor.variant.intensity = (
+			disruptor.variant.intensity * float(factors.get("intensity", 1.0))
+		)
+		disruptor.variant.interval = (
+			disruptor.variant.interval * float(factors.get("interval", 1.0))
+		)
+		if disruptor.is_active():
+			disruptor.set_variant(disruptor.variant)
 
 
 func _update_ui() -> void:

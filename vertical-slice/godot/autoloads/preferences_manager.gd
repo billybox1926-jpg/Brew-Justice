@@ -35,6 +35,13 @@ const SAVE_PATH := "user://brew_justice_prefs.cfg"
 @export var haptics_enabled: bool = false
 ## Haptic strength 0.0 (off) to 1.0 (full); scales every vibration.
 @export_range(0.0, 1.0, 0.05) var haptics_intensity: float = 0.6
+## Sensory pacing from calibration (issue #48). Multiplier on chaos pulse
+## intensity and interval: "gentle" = calmer/less frequent, "standard" =
+## designed defaults, "intense" = stronger/more frequent.
+@export_enum("gentle", "standard", "intense") var sensory_pacing: String = "standard"
+## True once the player finished or skipped calibration; gates the
+## first-run prompt so it shows at most once.
+@export var calibration_done: bool = false
 var custom_bindings: Dictionary = {}
 
 
@@ -68,6 +75,13 @@ func load_or_create_defaults() -> void:
 			0.0,
 			1.0
 		)
+		var loaded_pacing: Variant = config.get_value(
+			"accessibility", "sensory_pacing", sensory_pacing
+		)
+		sensory_pacing = (
+			loaded_pacing if loaded_pacing in ["gentle", "standard", "intense"] else "standard"
+		)
+		calibration_done = config.get_value("accessibility", "calibration_done", calibration_done)
 		var loaded_bindings = config.get_value("input", "custom_bindings", {})
 		if typeof(loaded_bindings) == TYPE_DICTIONARY:
 			custom_bindings = loaded_bindings
@@ -93,6 +107,8 @@ func save() -> void:
 	config.set_value("accessibility", "beat_pulsar_enabled", beat_pulsar_enabled)
 	config.set_value("accessibility", "haptics_enabled", haptics_enabled)
 	config.set_value("accessibility", "haptics_intensity", haptics_intensity)
+	config.set_value("accessibility", "sensory_pacing", sensory_pacing)
+	config.set_value("accessibility", "calibration_done", calibration_done)
 	_save_bindings_to_config(config)
 	config.save(SAVE_PATH)
 
