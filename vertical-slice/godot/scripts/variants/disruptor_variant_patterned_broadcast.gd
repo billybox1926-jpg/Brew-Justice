@@ -8,5 +8,5 @@ func _init() -> void:
 	duration = 0.35
 	interval = 3.0
 	auditory_band = "mid"
-	lore_fragment = "A repeating pulse ticks from the stairwell."
+	lore_text = "A repeating pulse ticks from the stairwell."
 

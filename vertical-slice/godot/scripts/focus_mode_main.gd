@@ -182,7 +182,7 @@ func _setup_story_beat_overload() -> void:
 	transformer_variant.duration = 1.0
 	transformer_variant.interval = 4.0
 	transformer_variant.auditory_band = "low"
-	transformer_variant.lore_fragment = "A distant transformer hums through the wall."
+	transformer_variant.lore_text = "A distant transformer hums through the wall."
 	story_beat_overload.variant_on_start = transformer_variant
 	_apply_disruptor_profile_for_active_clue()
 	add_child(story_beat_overload)

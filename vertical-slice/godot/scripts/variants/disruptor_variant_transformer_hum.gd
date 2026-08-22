@@ -8,5 +8,5 @@ func _init() -> void:
 	duration = 1.0
 	interval = 4.0
 	auditory_band = "low"
-	lore_fragment = "A distant transformer hums through the wall."
+	lore_text = "A distant transformer hums through the wall."
 
