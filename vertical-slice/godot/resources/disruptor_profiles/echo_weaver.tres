@@ -1,4 +1,9 @@
+[gd_resource type="Resource" script_class="DisruptorProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/disruptor_profile.gd" id="1"]
+
 [resource]
+script = ExtResource("1")
 type="DisruptorProfile"
 id="echo_weaver"
 display_name="Echo Weaver"
@@ -6,4 +11,4 @@ description="Rhythmic, wave-like fluctuations that pull focus off baseline."
 chaos_style="wave"
 base_chaos_rate=0.7
 chaos_variance=0.15
-color=Color(0.5, 1.0, 0.6)
+color=Color(0.5, 1.0, 0.6, 1.0)
