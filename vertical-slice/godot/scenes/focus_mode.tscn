@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/npc_regular.gd" id="10"]
 [ext_resource type="Script" path="res://scripts/audio_bus_manager.gd" id="11"]
 [ext_resource type="Script" path="res://scripts/sensory_canvas.gd" id="12"]
+[ext_resource type="Script" path="res://scripts/observer_light.gd" id="13"]
 
 [node name="FocusMode" type="Control"]
 layout_mode = 1
@@ -31,13 +32,9 @@ anchor_bottom = 1.0
 script = ExtResource("12")
 
 [node name="AmbientAudio" type="AudioStreamPlayer2D" parent="."]
-position = Vector2i(640, 360)
+position = Vector2(640, 360)
 
-[node name="SceneView" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="SceneView" type="Node2D" parent="."]
 
 [node name="TireSmudge" type="Sprite2D" parent="SceneView"]
 texture = ExtResource("5")
@@ -67,7 +64,7 @@ anchors_preset = 4
 offset_right = 480.0
 offset_bottom = 32.0
 text = "Baseline · Baseline — 18%"
-add_theme_color_override("font_color", Color(0.478, 0.655, 0.792))
+add_theme_color_override("font_color", Color(0.478, 0.655, 0.792, 1.0))
 
 [node name="SensoryLabel" type="Label" parent="."]
 anchors_preset = 1
@@ -106,19 +103,15 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+script = ExtResource("13")
 
-[node name="RoomLight" type="PointLight2D" parent="ObserverLight"]
-position = Vector2i(640, 360)
+[node name="RoomLight" type="PointLight2D" parent="."]
+position = Vector2(640, 360)
 energy = 0.6
 texture_scale = 1.0
-color = Color(0.851, 0.71, 0.51)
+color = Color(0.851, 0.71, 0.51, 1.0)
 
-[node name="NpcRegular" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
+[node name="NpcRegular" type="Node2D" parent="."]
 script = ExtResource("10")
 
 [node name="Anim" type="AnimationPlayer" parent="NpcRegular"]

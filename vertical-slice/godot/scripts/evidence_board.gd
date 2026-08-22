@@ -11,7 +11,7 @@ const COMBINATION_THRESHOLD := 0.8
 const CONTRADICTION_THRESHOLD := 0.5
 
 
-func register_clue(clue_data: ClueData, resolver: ClueResolver) -> void:
+func register_clue(clue_data: ClueData, resolver: Node) -> void:
 	if not clue_data or not resolver:
 		return
 	_graph[clue_data.clue_id] = clue_data
@@ -31,19 +31,19 @@ func _evaluate_graph() -> void:
 
 	for id_a in _graph:
 		var data_a: ClueData = _graph[id_a]
-		var clarity_a := _clue_states.get(id_a, 0.0)
+		var clarity_a: float = _clue_states.get(id_a, 0.0)
 		total_progress += clarity_a
 
 		for id_b in data_a.combines_with:
-			var clarity_b := _clue_states.get(id_b, 0.0)
+			var clarity_b: float = _clue_states.get(id_b, 0.0)
 			if clarity_a > COMBINATION_THRESHOLD and clarity_b > COMBINATION_THRESHOLD:
-				var name_b := _graph[id_b].clue_name if _graph.has(id_b) else id_b
+				var name_b: String = _graph[id_b].clue_name if _graph.has(id_b) else id_b
 				insights.append("Combined: %s + %s" % [data_a.clue_name, name_b])
 				total_progress += 1.0
 
 		for id_contra in data_a.contradicts:
-			var clarity_contra := _clue_states.get(id_contra, 0.0)
-			if clarity_a > _contradiction_threshold and clarity_contra > _contradiction_threshold:
+			var clarity_contra: float = _clue_states.get(id_contra, 0.0)
+			if clarity_a > CONTRADICTION_THRESHOLD and clarity_contra > CONTRADICTION_THRESHOLD:
 				contradiction_detected.emit(id_a, id_contra)
 
 	var avg_clarity := 0.0
@@ -54,7 +54,7 @@ func _evaluate_graph() -> void:
 	total_progress += avg_clarity
 
 	var divisor := float(_graph.size() + insights.size())
-	var progress := clamp(total_progress / (divisor if divisor > 0.0 else 1.0), 0.0, 1.0)
+	var progress: float = clampf(total_progress / (divisor if divisor > 0.0 else 1.0), 0.0, 1.0)
 	deduction_progress.emit(progress, "\n".join(insights))
 
 

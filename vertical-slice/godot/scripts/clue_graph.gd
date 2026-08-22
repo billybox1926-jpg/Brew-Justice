@@ -17,6 +17,8 @@ class Clue:
 		id = p_id
 		data = p_data
 
+const COMBINATION_THRESHOLD := 0.8
+const CONTRADICTION_THRESHOLD := 0.5
 var clues: Dictionary = {}
 
 var total_registered: int = 0
@@ -104,7 +106,7 @@ func _recalculate() -> void:
 				if contra and contra.clarity > CONTRADICTION_THRESHOLD and c.clarity > CONTRADICTION_THRESHOLD:
 					_insights.append("Contradiction: %s vs %s" % [c.data.clue_name, contra.data.clue_name if contra.data else contra_id])
 	avg_clarity = (sum / float(count)) if count > 0 else 0.0
-	var progress := clamp(avg_clarity * 0.6 + (float(total_unlocked) / float(max(total_registered, 1))) * 0.4, 0.0, 1.0)
+	var progress: float = clampf(avg_clarity * 0.6 + (float(total_unlocked) / float(maxi(total_registered, 1))) * 0.4, 0.0, 1.0)
 	last_progress = progress
 	graph_progressed.emit(progress, _insights.duplicate())
 

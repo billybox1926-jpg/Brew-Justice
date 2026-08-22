@@ -27,7 +27,7 @@ var audio_manager: AudioBusManager
 var sensory_canvas: SensoryCanvas
 var story_beat_overload: StoryBeat
 
-var _prefs: PreferencesManager
+var _prefs: Node
 var _caption_label: RichTextLabel
 var _caption_timer: Timer
 
@@ -142,10 +142,12 @@ func _ready() -> void:
 	_setup_preferences()
 	disruption_overlay = disruption_overlay_node
 	if disruptor:
+		if disruptor.has_signal("chaos_pulse"):
+			if not disruptor.chaos_pulse.is_connected(_on_chaos):
+				disruptor.chaos_pulse.connect(_on_chaos)
 		if disruptor.has_signal("chaos_pulse_rich"):
-			disruptor.chaos_pulse_rich.connect(_on_chaos_rich)
-		elif disruptor.has_signal("chaos_pulse"):
-			disruptor.chaos_pulse.connect(_on_chaos)
+			if not disruptor.chaos_pulse_rich.is_connected(_on_chaos_rich):
+				disruptor.chaos_pulse_rich.connect(_on_chaos_rich)
 	_apply_antagonist_lore(disruptor)
 
 	build_track()
@@ -199,8 +201,16 @@ func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
 		state_label.text = _focus_mode_phase_label(to)
 	if _prefs and _prefs.captions_enabled:
 		_show_caption(_phase_caption(to))
-	if to == SensoryCrimeLoop.Phase.TUNE_IN:
+	if to == SensoryCrimeLoop.Phase.OBSERVE:
+		active_clue_id = ""
+	elif to == SensoryCrimeLoop.Phase.TUNE_IN:
 		_start_next_clue()
+
+
+func _start_next_clue() -> void:
+	investigation_emitted = false
+	clue_resolve_progress = 0.0
+	_active_clue_if_any()
 
 
 func _apply_disruptor_profile_for_active_clue() -> void:
@@ -267,16 +277,16 @@ func _input(event: InputEvent) -> void:
 				focus.toggle()
 			elif InputMap.has_action("demo_tune_in") and InputMap.action_has_event("demo_tune_in", event):
 				sensory_crime_loop.trigger_tune_in()
-		if InputMap.has_action("focus_toggle") and InputMap.action_pressed("focus_toggle"):
+		if event.is_action_pressed("focus_toggle"):
 			focus.toggle()
-		elif InputMap.has_action("stim_hold") and InputMap.action_pressed("stim_hold"):
+		elif event.is_action_pressed("stim_hold"):
 			stim.press()
-		elif InputMap.has_action("reset_sensory") and InputMap.action_pressed("reset_sensory"):
+		elif event.is_action_pressed("reset_sensory"):
 			_on_reset()
-		elif InputMap.has_action("chaos_trigger") and InputMap.action_pressed("chaos_trigger"):
+		elif event.is_action_pressed("chaos_trigger"):
 			_on_chaos(0.6)
 	elif event is InputEventKey:
-		if InputMap.has_action("stim_hold") and InputMap.action_released("stim_hold"):
+		if event.is_action_released("stim_hold"):
 			stim.release()
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -316,6 +326,26 @@ func _process(delta: float) -> void:
 	_update_canvas(delta)
 
 
+func _update_investigation(delta: float) -> void:
+	if investigation_phase == InvestigationPhase.Resolved:
+		investigation_resolve_duration = maxf(investigation_resolve_duration - delta, 0.0)
+		if investigation_resolve_duration <= 0.0:
+			_reset_investigation()
+		_update_ui()
+		return
+	if investigation_phase != InvestigationPhase.Observe:
+		_update_ui()
+		return
+	if investigation_cooldown > 0.0:
+		return
+	investigation_phase = InvestigationPhase.TuneIn
+	investigation_clue_idx = 0
+	investigation_emitted = false
+	clue_resolve_progress = 0.0
+	_start_next_clue()
+	_update_ui()
+
+
 func _update_clue_resolution(delta: float) -> void:
 	if investigation_phase != InvestigationPhase.TuneIn:
 		clue_resolve_progress = move_toward(clue_resolve_progress, 0.0, delta * 2.0)
@@ -335,7 +365,7 @@ func _update_clue_resolution(delta: float) -> void:
 func _update_canvas(delta: float) -> void:
 	if not audio_manager or not sensory_canvas:
 		return
-	var mode := meter.mode_name()
+	var mode: String = meter.mode_name()
 	var tune_active := investigation_phase == InvestigationPhase.TuneIn and investigation_emitted
 	audio_manager.update_targets(mode, stim.holding, tune_active, focus_active)
 	sensory_canvas.set_state(presence, chaos, 0.0 if investigation_phase != InvestigationPhase.TuneIn else int(investigation_emitted) + 0.0, smoothstep(0.0, 1.0, presence))
@@ -344,14 +374,14 @@ func _update_canvas(delta: float) -> void:
 	if sensory_canvas.has_method("set_trail_target") and scene_view:
 		sensory_canvas.set_trail_target(scene_view.get_global_mouse_position())
 	var binds := PackedVector2Array()
-	var step := max(6, trail.size() / 8)
+	var step: int = maxi(6, int(trail.size() / 8))
 	for i in range(0, trail.size(), step):
 		binds.append(trail[i])
 	sensory_canvas.set_bind_points(binds)
 
 
 func _peripheral_state() -> void:
-	var mode := meter.mode_name()
+	var mode: String = meter.mode_name()
 	if mode == "Overload":
 		peripheries = lerp(peripheries, 0.18, get_process_delta_time() * 5.0)
 		clue_alpha = lerp(clue_alpha, 0.92, get_process_delta_time() * 4.0)
@@ -382,15 +412,6 @@ func _try_resolve_investigation() -> void:
 	focus_active = false
 
 
-func _on_sensory_loop_phase_changed(from: int, to: int) -> void:
-	if state_label:
-		state_label.text = _focus_mode_phase_label(to)
-	if to == SensoryCrimeLoop.Phase.OBSERVE:
-		active_clue_id = ""
-	elif to == SensoryCrimeLoop.Phase.TUNE_IN:
-		_active_clue_if_any()
-
-
 func _active_clue_if_any() -> void:
 	if not evidence_board:
 		return
@@ -401,22 +422,6 @@ func _active_clue_if_any() -> void:
 			break
 
 
-func _focus_mode_phase_label(phase: int) -> String:
-	match phase:
-		SensoryCrimeLoop.Phase.OBSERVE:
-			return "Observe"
-		SensoryCrimeLoop.Phase.OVERLOAD:
-			return "Overload"
-		SensoryCrimeLoop.Phase.STIM:
-			return "Stim"
-		SensoryCrimeLoop.Phase.TUNE_IN:
-			return "Tune-in"
-		SensoryCrimeLoop.Phase.RESOLVE:
-			return "Resolve"
-		_:
-			return ""
-
-
 
 func _reset_investigation() -> void:
 	investigation_phase = InvestigationPhase.Observe
@@ -425,6 +430,8 @@ func _reset_investigation() -> void:
 	investigation_cooldown = INVESTIGATION_COOLDOWN()
 	clue_resolve_progress = 0.0
 	_reset_investigation_visuals()
+	if investigation_ui:
+		investigation_ui.hide_insight()
 
 
 func _reset_investigation_visuals() -> void:
@@ -457,6 +464,21 @@ func _on_stim_released(strength: float) -> void:
 func _on_rhythm_pulse(intensity: float) -> void:
 	presence_target = min(presence_target + intensity * 0.1 * (1.0 - chaos * 0.8), 1.0)
 	_try_advance_investigation_on_pulse()
+
+
+func _try_advance_investigation_on_pulse() -> void:
+	if investigation_phase != InvestigationPhase.TuneIn or not active_clue_id:
+		return
+	investigation_emitted = true
+	investigation_clue_idx = min(investigation_clue_idx + 1, 3)
+	_update_ui()
+
+
+func _try_advance_investigation_on_chaos(strength: float) -> void:
+	if investigation_phase != InvestigationPhase.TuneIn:
+		return
+	clue_resolve_progress = move_toward(clue_resolve_progress, 0.0, strength * CLUE_RESOLVE_CHAOS_PENALTY)
+	investigation_emitted = false
 
 
 func _update_world_listeners(delta: float) -> void:
@@ -493,7 +515,7 @@ func _on_chaos_rich(strength: float, duration: float, band: String) -> void:
 		_show_caption("Chaos surge — %s band" % band)
 
 
-func setup_captions() -> void:
+func _setup_captions() -> void:
 	if not is_inside_tree():
 		return
 	if not _caption_label:
@@ -603,7 +625,7 @@ func _setup_investigation_ui() -> void:
 
 
 func _setup_preferences() -> void:
-	_prefs = get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	_prefs = get_node_or_null("/root/PreferencesManager")
 	if _prefs:
 		if _prefs.has_signal("preferences_updated"):
 			_prefs.preferences_updated.connect(_on_preferences_updated)
@@ -612,11 +634,6 @@ func _setup_preferences() -> void:
 func _on_beat_resolved(insight_text: String) -> void:
 	if investigation_ui:
 		investigation_ui.show_insight(insight_text)
-
-
-func _reset_investigation() -> void:
-	if investigation_ui:
-		investigation_ui.hide_insight()
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:
@@ -630,6 +647,10 @@ func _input_map_add_or_replace(action: String, key: Key) -> void:
 
 
 # === Track + smear + odor locator ===
+
+func build_trail() -> void:
+	TRAIL = _trail_for(track_points, trail_offset)
+
 
 func build_track() -> void:
 	track_points.clear()
@@ -659,8 +680,8 @@ func _midpoint_series(points: PackedVector2Array) -> PackedVector2Array:
 
 
 func _update_trail_legibility(delta: float) -> void:
-	var focus_bonus := 0.28 if investigation_phase == InvestigationPhase.TuneIn else 0.0
-	var density := clamp(presence * 0.8 + focus_bonus, 0.2, 1.0)
+	var focus_bonus: float = 0.28 if investigation_phase == InvestigationPhase.TuneIn else 0.0
+	var density: float = clampf(presence * 0.8 + focus_bonus, 0.2, 1.0)
 	trail_target_len = TRAIL_MIN_POINTS + int(floor(density * float(TRAIL_STEP_POINTS)))
 	trail_target_len = clamp(trail_target_len, TRAIL_MIN_POINTS, TRAIL_MIN_POINTS + TRAIL_STEP_POINTS)
 	trail_current_len = lerp(float(trail_current_len), float(trail_target_len), 1.0 - exp(-HIGHLIGHT_SMOOTH * delta))
@@ -734,7 +755,7 @@ func _on_preferences_updated() -> void:
 
 func _update_ui() -> void:
 	sensory = clamp(meter.sensory, 0.0, 100.0)
-	var mode := meter.mode_name()
+	var mode: String = meter.mode_name()
 	var focus_text := FOCUS_TEXT_ACTIVE if focus_active else FOCUS_TEXT_INACTIVE
 	if state_label:
 		var chaos_note := "" if chaos <= 0.01 else " — static %.0f%%" % (chaos * 100.0)
@@ -751,10 +772,10 @@ func _update_ui() -> void:
 		stim_indicator.visible = stim.holding
 	if tire_clue:
 		if investigation_phase == InvestigationPhase.TuneIn:
-			var clamped_idx := min(investigation_clue_idx, 3)
-			var target_a := 0.22 + clamped_idx * 0.18 + (0.18 if investigation_emitted else 0.0)
+			var clamped_idx: int = min(investigation_clue_idx, 3)
+			var target_a: float = 0.22 + float(clamped_idx) * 0.18 + (0.18 if investigation_emitted else 0.0)
 			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, min(target_a, 0.96), get_process_delta_time() * 4.0)
-			var neon_strength := clamp(clue_resolve_progress, 0.0, 1.0)
+			var neon_strength: float = clampf(clue_resolve_progress, 0.0, 1.0)
 			tire_clue.modulate = tire_clue.modulate.lerp(Color(1.0, 0.9, 0.6, tire_clue.modulate.a), neon_strength * get_process_delta_time() * 4.0)
 			tire_clue.scale = tire_clue.scale.lerp(Vector2.ONE * (1.0 + neon_strength * 0.15), get_process_delta_time() * 4.0)
 		elif investigation_phase == InvestigationPhase.Resolved:
@@ -771,6 +792,19 @@ func _update_ui() -> void:
 	if tire_smudge:
 		var smudge_target := 0.08 if focus_active or mode != METER_MODE_BASELINE else 0.75
 		tire_smudge.modulate.a = move_toward(tire_smudge.modulate.a, smudge_target, get_process_delta_time() * 5.0)
+
+
+func _apply_colorblind_mode(enabled: bool) -> void:
+	var palette := BrewColorPalette.new()
+	if state_label:
+		var color: Color = palette.color_for("calm", enabled)
+		if meter and meter.mode_name() == METER_MODE_OVERLOAD:
+			color = palette.color_for("overload", enabled)
+		elif meter and meter.mode_name() == METER_MODE_HYPERFOCUS:
+			color = palette.color_for("trail", enabled)
+		state_label.add_theme_color_override("font_color", color)
+	if sensory_canvas and sensory_canvas.has_method("_on_preferences_updated"):
+		sensory_canvas._on_preferences_updated()
 
 
 func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:

@@ -35,7 +35,7 @@ func release() -> void:
 	if !holding:
 		return
 	holding = false
-	var strength := clamp(charge, 0.0, 1.0)
+	var strength: float = clampf(charge, 0.0, 1.0)
 	stim_released.emit(strength)
 	charge = 0.0
 	cooldown = COOLDOWN_SECONDS
@@ -52,7 +52,7 @@ func update(delta: float) -> void:
 		var beat_now := cos(beat_clock)
 		if beat_prev <= 0.0 and beat_now > 0.0:
 			# Intensity ramps in over the first ~3 beats, then sustains at 1.0.
-			var intensity := clamp(beat_clock / (TAU * RAMP_CYCLES), 0.0, 1.0)
+			var intensity: float = clampf(beat_clock / (TAU * RAMP_CYCLES), 0.0, 1.0)
 			intensity *= (1.0 - chaos * CHAOS_LEAK_SCALE)  # disrupted calm leaks less into the room
 			if intensity > EMISSION_THRESHOLD:
 				rhythm_pulse.emit(intensity)

@@ -1,3 +1,4 @@
+class_name SensoryMeter
 extends Node
 # SensoryMeter owns load state and tier thresholds.
 # Signals keep changes decoupled from rendering/logic.

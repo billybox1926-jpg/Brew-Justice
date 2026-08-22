@@ -27,7 +27,7 @@ const TRAIL_FADE_RESOLVED: float = 0.12
 @export var vignette_color: Color = Color(0.05, 0.03, 0.02)
 @export var trail_color: Color = Color(0.82, 0.62, 0.18)
 @export var highlight_color: Color = Color(1.0, 0.9, 0.6)
-var _palette: ColorPalette
+var _palette: BrewColorPalette
 
 var presence: float = 0.5
 var chaos: float = 0.0
@@ -46,7 +46,7 @@ const TRAIL_DRAW_WIDTH_PRESENCE_SCALE: float = 3.0
 
 
 func _ready() -> void:
-	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	var pm := get_node_or_null("/root/PreferencesManager")
 	if pm and pm.has_signal("preferences_updated"):
 		pm.preferences_updated.connect(_on_preferences_updated)
 	_setup_palette()
@@ -55,7 +55,7 @@ func _ready() -> void:
 
 
 func _on_preferences_updated() -> void:
-	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	var pm := get_node_or_null("/root/PreferencesManager")
 	_apply_palette(pm)
 	_apply_trail_prefs(pm)
 
@@ -64,11 +64,11 @@ func _setup_palette() -> void:
 	_apply_palette(get_node_or_null("/root/PreferencesManager"))
 
 
-func _apply_palette(pm: PreferencesManager) -> void:
+func _apply_palette(pm: Node) -> void:
 	var cb := false
 	if pm and pm.has_method("is_colorblind_mode"):
 		cb = pm.is_colorblind_mode()
-	var base := ColorPalette.new()
+	var base := BrewColorPalette.new()
 	_palette = base
 	highlight_color = base.color_for("bind_highlight", cb)
 	queue_redraw_if_needed()
@@ -81,13 +81,13 @@ func queue_redraw_if_needed() -> void:
 
 
 func _is_colorblind() -> bool:
-	var pm := get_node_or_null("/root/PreferencesManager") as PreferencesManager
+	var pm := get_node_or_null("/root/PreferencesManager")
 	if pm and pm.has_method("is_colorblind_mode"):
 		return pm.is_colorblind_mode()
 	return false
 
 
-func _apply_trail_prefs(pm: PreferencesManager) -> void:
+func _apply_trail_prefs(pm: Node) -> void:
 	if pm:
 		trail_help_visible = bool(pm.trail_enabled)
 	queue_redraw_if_needed()
@@ -131,10 +131,10 @@ func _draw_vignette() -> void:
 	var size := get_viewport_rect().size
 	var strength := _get_vignette_strength(presence, chaos, calm)
 	var eased := ease(strength, VIGNETTE_EASE)
-	var radius := min(size.x, size.y) * (VIGNETTE_BASE_FRAC + eased * VIGNETTE_RADIUS_SPAN)
-	var col := _get_vignette_color(eased, calm)
+	var radius: float = minf(size.x, size.y) * (VIGNETTE_BASE_FRAC + eased * VIGNETTE_RADIUS_SPAN)
+	var col: Color = _get_vignette_color(eased, calm)
 
-	var band := max(24.0, min(size.x, size.y) * (0.08 + eased * 0.12))
+	var band: float = maxf(24.0, minf(size.x, size.y) * (0.08 + eased * 0.12))
 	var inner := Rect2(band, band, size.x - band * 2.0, size.y - band * 2.0)
 	var outer_alpha := col.a * (1.0 - eased * 0.55)
 	draw_rect(Rect2(0, 0, size.x, band), Color(col.r, col.g, col.b, outer_alpha))
