@@ -1,4 +1,3 @@
 ## focusMode smoke checks
-
-These checks require Godot/GUT headless execution.
-Use `addons/gut` or `rails test` equivalent once available in CI.
+## Run headless: godot --headless --path . --script res://test/run_focus_mode_smoke.gd
+## The integration suite in test/integration/ targets GUT once an addon lands.

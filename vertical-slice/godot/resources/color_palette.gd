@@ -1,5 +1,5 @@
 extends Resource
-class_name ColorPalette
+class_name BrewColorPalette
 
 ## Central color definitions for Brew & Justice visual states.
 ## Each semantic color has a standard and colorblind-safe variant.

@@ -1,5 +1,4 @@
 extends Node
-class_name PreferencesManager
 
 ## Persistent accessibility, audio, and input preferences.
 ## Loaded automatically at startup via project autoload.

@@ -44,7 +44,7 @@ func _draw() -> void:
 	var size := get_rect().size
 	var flicker := sin(_flicker_time * 1.7) * cos(_flicker_time * 0.73)
 	var y_offset := flicker * max_jitter_pixels * chaos
-	var edge_alpha := neon_color.a * (EDGE_ALPHA_BASE + abs(flicker) * EDGE_ALPHA_DRIVE) * chaos
+	var edge_alpha: float = neon_color.a * (EDGE_ALPHA_BASE + absf(flicker) * EDGE_ALPHA_DRIVE) * chaos
 	var edge_color := neon_color
 	edge_color.a = clamp(edge_alpha, minimum_edge_alpha, neon_color.a)
 

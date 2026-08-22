@@ -34,7 +34,7 @@ func _setup_placeholder_animation() -> void:
 	anim.loop_mode = Animation.LOOP_LINEAR
 
 	var target_path := "NpcSprite" if has_node("NpcSprite") else "."
-	var track_idx := anim.add_track(Animation.TYPE_POSITION)
+	var track_idx: int = anim.add_track(Animation.TrackType.TYPE_POSITION_3D)
 	anim.track_set_path(track_idx, target_path)
 
 	anim.track_insert_key(track_idx, 0.0, Vector2(0.0, 0.0))
@@ -55,7 +55,7 @@ func apply_presence(value: float) -> void:
 		if animation_player and animation_player.speed_scale != 1.0:
 			animation_player.speed_scale = 1.0
 	else:
-		var new_speed := lerp(CHAOS_SPEED, CALM_SPEED, calm)
+		var new_speed: float = lerpf(CHAOS_SPEED, CALM_SPEED, calm)
 		if animation_player:
 			animation_player.speed_scale = new_speed
 		speed_changed.emit(new_speed)
