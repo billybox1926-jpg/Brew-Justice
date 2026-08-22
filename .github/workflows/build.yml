@@ -1,0 +1,110 @@
+name: Build exports
+
+# Desktop + web export pipeline (issue #61).
+# - Every push to main / PR: build all targets as artifacts (verification).
+# - Tag push v* or manual dispatch with a tag: also creates a GitHub Release
+#   and attaches the zipped desktop builds + web export.
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.4-stable
+  GODOT_BIN: /tmp/godot/Godot_v4.4-stable_linux.x86_64
+  PROJECT_PATH: vertical-slice/godot
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.4 Linux
+        run: |
+          curl -L -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v4.4-stable_linux.x86_64.zip
+          unzip /tmp/godot.zip -d /tmp/godot
+          chmod +x $GODOT_BIN
+
+      # Export templates must match the editor version exactly.
+      - name: Download Godot 4.4 export templates
+        run: |
+          curl -L -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v4.4-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates
+          unzip -j /tmp/templates.tpz "templates/*" -d ~/.local/share/godot/export_templates/4.4.stable
+
+      # One import pass so .godot/ caches (UIDs, script class map) exist.
+      - name: Import project resources
+        run: $GODOT_BIN --headless --editor --import --path $PROJECT_PATH
+
+      # Godot refuses to export if the output directory doesn't exist yet.
+      - name: Create export output directories
+        run: mkdir -p vertical-slice/build/windows vertical-slice/build/linux vertical-slice/build/web
+
+      - name: Export Windows
+        run: $GODOT_BIN --headless --path $PROJECT_PATH --export-release "Windows Desktop" ../build/windows/BrewJustice.exe
+
+      - name: Export Linux
+        run: $GODOT_BIN --headless --path $PROJECT_PATH --export-release "Linux" ../build/linux/BrewJustice.x86_64
+
+      - name: Export Web
+        run: $GODOT_BIN --headless --path $PROJECT_PATH --export-release "Web" ../build/web/index.html
+
+      - name: Package desktop builds
+        run: |
+          cd vertical-slice/build/windows && zip -r ../../brew-justice-windows-x86_64.zip BrewJustice.exe
+          cd ../linux && chmod +x BrewJustice.x86_64 && zip ../../brew-justice-linux-x86_64.zip BrewJustice.x86_64
+
+      - name: Package web build
+        run: cd vertical-slice/build/web && zip -r ../../../brew-justice-web.zip .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: brew-justice-exports
+          path: |
+            brew-justice-windows-x86_64.zip
+            brew-justice-linux-x86_64.zip
+            brew-justice-web.zip
+          if-no-files-found: error
+
+  release:
+    needs: export
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exported artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: brew-justice-exports
+
+      - name: Resolve version tag
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=v0.0.0-dev.$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: Brew Justice ${{ steps.ver.outputs.tag }}
+          draft: false
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          generate_release_notes: true
+          files: |
+            brew-justice-windows-x86_64.zip
+            brew-justice-linux-x86_64.zip
+            brew-justice-web.zip

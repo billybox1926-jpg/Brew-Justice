@@ -120,6 +120,29 @@ CI runs the same command on every PR. Optional pre-commit hook:
 existing slice code are disabled in `vertical-slice/godot/gdlintrc` — keep
 PR noise low; tighten rules per-file as files are touched.
 
+## Building the game
+
+CI builds every export target on each push to `main` (`.github/workflows/build.yml`)
+and uploads a `brew-justice-exports` artifact containing zipped Windows, Linux,
+and Web builds. Pushing a tag `v*` (or running the workflow manually) also
+publishes a GitHub Release with those artifacts attached.
+
+To build locally you need [Godot 4.4](https://godotengine.org/download) with the
+matching 4.4 export templates installed (Editor → Manage Export Templates).
+The export presets live in `vertical-slice/godot/export_presets.cfg`:
+
+```bash
+cd vertical-slice/godot
+mkdir -p ../build/windows ../build/linux ../build/web
+godot --headless --path . --export-release "Windows Desktop" ../build/windows/BrewJustice.exe
+godot --headless --path . --export-release "Linux"             ../build/linux/BrewJustice.x86_64
+godot --headless --path . --export-release "Web"               ../build/web/index.html
+```
+
+Build output goes to `vertical-slice/build/`, which is gitignored. The Web
+export is a plain static site — serve the folder over HTTP (e.g.
+`python -m http.server`) to play it; browsers block WASM on `file://`.
+
 ## Code of conduct
 
 This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). By

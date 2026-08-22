@@ -38,3 +38,6 @@ exports/
 .vscode/
 .idea/
 *.tmp
+
+# Export build output (produced by CI / local exports)
+vertical-slice/build/

@@ -102,6 +102,14 @@ It explores the same focus-mode loop with the Web Audio API:
 - Web Audio ambient (low rumble + high hiss) that reshapes per state, plus an
   Overload drone when the meter peaks
 
+## Downloadable builds
+
+Every push to `main` is built automatically for **Windows**, **Linux**, and
+**Web** by CI (`.github/workflows/build.yml`) — grab the `brew-justice-exports`
+artifact from the latest workflow run. Tagged releases (`v*`) publish the same
+builds on the [Releases page](../../releases). Contributor build instructions
+are in [CONTRIBUTING.md](CONTRIBUTING.md#building-the-game).
+
 ---
 
 **Docs**
