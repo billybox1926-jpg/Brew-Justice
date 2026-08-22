@@ -10,4 +10,3 @@ func _init() -> void:
 	interval = 4.0
 	auditory_band = "low"
 	lore_text = "A distant transformer hums through the wall."
-

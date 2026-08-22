@@ -10,4 +10,3 @@ func _init() -> void:
 	interval = 2.5
 	auditory_band = "mid"
 	lore_text = "A rhythmic buzz bleeds through the ceiling tiles."
-

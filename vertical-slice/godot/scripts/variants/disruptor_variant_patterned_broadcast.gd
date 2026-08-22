@@ -10,4 +10,3 @@ func _init() -> void:
 	interval = 3.0
 	auditory_band = "mid"
 	lore_text = "A repeating pulse ticks from the stairwell."
-

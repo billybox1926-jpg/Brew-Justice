@@ -10,4 +10,3 @@ func _init() -> void:
 	interval = 5.0
 	auditory_band = "high"
 	lore_text = "A sharp static snaps the air every few seconds."
-
