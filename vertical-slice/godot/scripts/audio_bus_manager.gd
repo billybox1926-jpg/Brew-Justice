@@ -178,7 +178,7 @@ func _reset_targets() -> void:
 		_target_band_cutoff = (
 			bandpass.cutoff_hz if bandpass.get("cutoff_hz") != null else bandpass.frequency
 		)
-		_target_band_q = bandpass.Q
+		_target_band_q = bandpass.resonance
 
 	_current_low_cutoff = _target_low_cutoff
 	_current_low_q = _target_low_q
@@ -313,7 +313,7 @@ func _glide_filters(delta: float) -> void:
 	highpass.cutoff_hz = _current_high_cutoff
 	highpass.resonance = _current_high_q
 	bandpass.cutoff_hz = _current_band_cutoff
-	bandpass.Q = _current_band_q
+	bandpass.resonance = _current_band_q
 
 
 func _process(delta: float) -> void:
