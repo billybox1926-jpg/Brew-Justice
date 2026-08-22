@@ -44,6 +44,10 @@ jobs:
       - name: Import project resources
         run: $GODOT_BIN --headless --editor --import --path $PROJECT_PATH
 
+      # Godot refuses to export if the output directory doesn't exist yet.
+      - name: Create export output directories
+        run: mkdir -p vertical-slice/build/windows vertical-slice/build/linux vertical-slice/build/web
+
       - name: Export Windows
         run: $GODOT_BIN --headless --path $PROJECT_PATH --export-release "Windows Desktop" ../build/windows/BrewJustice.exe
 
