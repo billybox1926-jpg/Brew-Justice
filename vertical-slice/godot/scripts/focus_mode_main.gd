@@ -32,6 +32,10 @@ var _prefs: Node
 var _state: Node
 ## Focus-mode transition dim (issue #54).
 var focus_fade: FocusTransitionFade
+## Ambient duck while key audio plays (issue #51).
+var audio_ducker: AudioDucker
+## Visual beat indicator for deaf/HoH players (issue #49).
+var beat_pulsar: BeatPulsar
 ## Opt-in narration for insight text (issue #46); speaks only when
 ## PreferencesManager.tts_enabled is true.
 var _narrative_tts: NarrativeTTS
@@ -170,9 +174,21 @@ func _ready() -> void:
 	_setup_sensory_crime_loop()
 	_setup_preferences()
 	_setup_game_state()
+	_apply_rhythm_timing()
 	focus_fade = FocusTransitionFade.new()
 	focus_fade.name = "FocusTransitionFade"
 	add_child(focus_fade)
+	audio_ducker = AudioDucker.new()
+	audio_ducker.name = "AudioDucker"
+	add_child(audio_ducker)
+	beat_pulsar = BeatPulsar.new()
+	beat_pulsar.name = "BeatPulsar"
+	add_child(beat_pulsar)
+	# Synced to the same emission as the stim rhythm audio (issue #49).
+	stim.rhythm_pulse.connect(beat_pulsar.on_beat)
+	var prefs_for_pulsar := get_node_or_null("/root/PreferencesManager")
+	if prefs_for_pulsar:
+		beat_pulsar.enabled = bool(prefs_for_pulsar.beat_pulsar_enabled)
 	disruption_overlay = disruption_overlay_node
 	if disruptor:
 		if disruptor.has_signal("chaos_pulse"):
@@ -583,9 +599,8 @@ func _setup_captions() -> void:
 		_caption_label.offset_bottom = -40
 		_caption_label.bbcode_enabled = true
 		_caption_label.modulate = Color(1, 1, 1, 0)
-		UiText.new().apply_to_rich_label(
-			_caption_label, UiText.BASE_CAPTION_SIZE, Color(0.95, 0.95, 0.95)
-		)
+		_caption_label.add_theme_color_override("default_color", Color(0.95, 0.95, 0.95))
+		_caption_label.add_theme_font_size_override("normal_font_size", 20)
 		_caption_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_caption_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		add_child(_caption_label)
@@ -751,6 +766,16 @@ func _on_beat_resolved(insight_text: String) -> void:
 		investigation_ui.show_insight(insight_text)
 	if _narrative_tts:
 		_narrative_tts.speak(insight_text)
+	# Duck ambient while key audio (insight/narration) plays (issue #51).
+	if audio_ducker:
+		audio_ducker.push_duck()
+		get_tree().create_timer(3.0).timeout.connect(_on_duck_hold_elapsed)
+
+
+## Releases the insight duck after its hold window (issue #51).
+func _on_duck_hold_elapsed() -> void:
+	if audio_ducker:
+		audio_ducker.pop_duck()
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:
@@ -882,17 +907,15 @@ func _on_preferences_updated() -> void:
 		return
 	_apply_colorblind_mode(_prefs.colorblind_mode)
 	_apply_reduced_motion()
-	# Re-apply text scaling/contrast to live labels (issue #45).
-	if state_label:
-		_stl_colorblind_safe(meter.mode_name() if meter else "Baseline", state_label, focus_active)
-	if _caption_label:
-		UiText.new().apply_to_rich_label(
-			_caption_label, UiText.BASE_CAPTION_SIZE, Color(0.95, 0.95, 0.95)
-		)
-	if investigation_ui and investigation_ui.label:
-		UiText.new().apply_to_label(
-			investigation_ui.label, UiText.BASE_INSIGHT_SIZE, Color(0.95, 0.95, 0.85)
-		)
+	_apply_rhythm_timing()
+	if beat_pulsar:
+		beat_pulsar.enabled = bool(_prefs.beat_pulsar_enabled)
+
+
+## Rhythm tolerance (issue #47): push the timing mode into the stim tool.
+func _apply_rhythm_timing() -> void:
+	if stim and _prefs:
+		stim.timing_mode = str(_prefs.rhythm_timing)
 
 
 func _update_ui() -> void:
@@ -969,28 +992,21 @@ func _apply_colorblind_mode(enabled: bool) -> void:
 
 
 func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
-	var ui_text := UiText.new()
 	if not _prefs or not _prefs.colorblind_mode:
-		ui_text.apply_to_label(label, UiText.BASE_HINT_SIZE, Color(0.518, 0.506, 0.471))
+		label.add_theme_font_size_override("font_size", 14)
 		label.text = (
 			"%s · %s — %0.f%%" % [FOCUS_TEXT_INACTIVE if not is_focused else "FOCUS", mode, sensory]
 		)
 		if not is_focused:
 			if mode == METER_MODE_BASELINE:
-				label.add_theme_color_override(
-					"font_color", UiText.text_color(Color(0.518, 0.506, 0.471))
-				)
+				label.add_theme_color_override("font_color", Color(0.518, 0.506, 0.471))
 			elif mode == METER_MODE_HYPERFOCUS:
-				label.add_theme_color_override(
-					"font_color", UiText.text_color(Color(1.0, 0.78, 0.2))
-				)
+				label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.2))
 			else:
-				label.add_theme_color_override(
-					"font_color", UiText.text_color(Color(0.96, 0.27, 0.24))
-				)
+				label.add_theme_color_override("font_color", Color(0.96, 0.27, 0.24))
 		return
-	ui_text.apply_to_label(label, UiText.BASE_STATE_SIZE, Color(0.95, 0.95, 0.95))
-	label.add_theme_color_override("font_color", UiText.text_color(Color(0.95, 0.95, 0.95)))
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
 	label.text = (
 		"%s · %s — %.0f%%"
 		% [FOCUS_TEXT_ACTIVE if is_focused else FOCUS_TEXT_INACTIVE, mode, sensory]
