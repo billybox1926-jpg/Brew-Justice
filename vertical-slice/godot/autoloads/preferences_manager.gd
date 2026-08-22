@@ -19,12 +19,18 @@ const SAVE_PATH := "user://brew_justice_prefs.cfg"
 ## Vestibular safety (issue #44): when true, disable jitter/flicker/scale
 ## animation and show static low-motion alternatives instead. Off by default.
 @export var reduced_motion: bool = false
+## Rhythm input tolerance (issue #47). "strict" keeps tuned timing;
+## "generous" widens hold/release windows so off-beat inputs still count.
+@export_enum("strict", "generous") var rhythm_timing: String = "strict"
 ## Global UI text scale (issue #45). 1.0 = default; multiplies every UI
 ## font size (labels, captions, insight text) without layout reflow.
 @export_range(1.0, 2.0, 0.1) var ui_text_scale: float = 1.0
 ## High-contrast text (issue #45): boosts text colors to pure white and
 ## adds dark backing so labels stay WCAG-readable over any background.
 @export var high_contrast_text: bool = false
+## Visual beat pulsar for deaf/hard-of-hearing players (issue #49).
+## Off by default; opt-in.
+@export var beat_pulsar_enabled: bool = false
 var custom_bindings: Dictionary = {}
 
 
@@ -45,11 +51,12 @@ func load_or_create_defaults() -> void:
 		captions_enabled = config.get_value("accessibility", "captions_enabled", captions_enabled)
 		tts_enabled = config.get_value("accessibility", "tts_enabled", tts_enabled)
 		reduced_motion = config.get_value("accessibility", "reduced_motion", reduced_motion)
-		ui_text_scale = clampf(
-			float(config.get_value("accessibility", "ui_text_scale", ui_text_scale)), 1.0, 2.0
+		var loaded_timing: Variant = config.get_value(
+			"accessibility", "rhythm_timing", rhythm_timing
 		)
-		high_contrast_text = config.get_value(
-			"accessibility", "high_contrast_text", high_contrast_text
+		rhythm_timing = loaded_timing if loaded_timing in ["strict", "generous"] else "strict"
+		beat_pulsar_enabled = config.get_value(
+			"accessibility", "beat_pulsar_enabled", beat_pulsar_enabled
 		)
 		var loaded_bindings = config.get_value("input", "custom_bindings", {})
 		if typeof(loaded_bindings) == TYPE_DICTIONARY:
@@ -70,8 +77,10 @@ func save() -> void:
 	config.set_value("accessibility", "captions_enabled", captions_enabled)
 	config.set_value("accessibility", "tts_enabled", tts_enabled)
 	config.set_value("accessibility", "reduced_motion", reduced_motion)
+	config.set_value("accessibility", "rhythm_timing", rhythm_timing)
 	config.set_value("accessibility", "ui_text_scale", ui_text_scale)
 	config.set_value("accessibility", "high_contrast_text", high_contrast_text)
+	config.set_value("accessibility", "beat_pulsar_enabled", beat_pulsar_enabled)
 	_save_bindings_to_config(config)
 	config.save(SAVE_PATH)
 

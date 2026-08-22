@@ -28,6 +28,7 @@ var enabled: bool = false:
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	visible = enabled
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ring = Panel.new()
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
