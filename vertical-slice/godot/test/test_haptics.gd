@@ -6,7 +6,7 @@ extends SceneTree
 ## intensity scaling math, no-op when disabled, stop on disable, and
 ## preference persistence. Actual motor output needs hardware.
 
-const PREFS := preload("res://autoloads/preferences_manager.gd")
+const PREFS: GDScript = preload("res://autoloads/preferences_manager.gd")
 const HAPTICS := preload("res://scripts/haptic_feedback.gd")
 
 
