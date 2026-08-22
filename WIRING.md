@@ -118,6 +118,8 @@ Every `connect()` in `focus_mode_main.gd`:
 | `EvidenceBoard.deduction_progress` | `FocusModeMain._on_deduction_progress` | `_setup_evidence_board()` |
 | `EvidenceBoard.contradiction_detected` | `FocusModeMain._on_contradiction_detected` | `_setup_evidence_board()` |
 | `InvestigationBeat.beat_resolved` | `FocusModeMain._on_beat_resolved` | `_setup_investigation_ui()` |
+| `StimTool.rhythm_pulse` | `beat_pulsar.on_beat` | `_ready()` |
+| `SceneTreeTimer.timeout` (duck hold) | `FocusModeMain._on_duck_hold_elapsed` | `_on_beat_resolved()` |
 | `InvestigationBeat.beat_resolved` | `FocusModeMain._on_investigation_resolved_for_save` | `_setup_game_state()` |
 | `StoryBeat.beat_ended` | `FocusModeMain._on_story_beat_ended_for_save` | `_setup_game_state()` |
 | `ClueResolver.clarity_changed` | `FocusModeMain._on_clue_clarity_for_save` | `_setup_game_state()` |
