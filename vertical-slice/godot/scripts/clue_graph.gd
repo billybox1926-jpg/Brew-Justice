@@ -5,6 +5,7 @@ signal clue_registered(clue_id: String)
 signal clue_unlocked(from_clue: String, unlocked_ids: Array[String])
 signal graph_progressed(progress: float, insights: Array[String])
 
+
 ## Clue data model suitable for designer-authored `ClueData` instances.
 class Clue:
 	var id: String
@@ -17,6 +18,7 @@ class Clue:
 		id = p_id
 		data = p_data
 
+
 const COMBINATION_THRESHOLD := 0.8
 const CONTRADICTION_THRESHOLD := 0.5
 var clues: Dictionary = {}
@@ -26,6 +28,7 @@ var total_unlocked: int = 0
 var avg_clarity: float = 0.0
 var last_progress: float = 0.0
 var _insights: Array[String] = []
+
 
 func register_clue(clue_data: ClueData) -> bool:
 	if not clue_data or not clue_data.clue_id:
@@ -98,15 +101,43 @@ func _recalculate() -> void:
 		if c.data and c.data.combines_with:
 			for partner_id in c.data.combines_with:
 				var partner := clues.get(partner_id, null) as Clue
-				if partner and partner.clarity > COMBINATION_THRESHOLD and c.clarity > COMBINATION_THRESHOLD:
-					_insights.append("Combined: %s + %s" % [c.data.clue_name, partner.data.clue_name if partner.data else partner_id])
+				if (
+					partner
+					and partner.clarity > COMBINATION_THRESHOLD
+					and c.clarity > COMBINATION_THRESHOLD
+				):
+					_insights.append(
+						(
+							"Combined: %s + %s"
+							% [
+								c.data.clue_name,
+								partner.data.clue_name if partner.data else partner_id
+							]
+						)
+					)
 		if c.data and c.data.contradicts:
 			for contra_id in c.data.contradicts:
 				var contra := clues.get(contra_id, null) as Clue
-				if contra and contra.clarity > CONTRADICTION_THRESHOLD and c.clarity > CONTRADICTION_THRESHOLD:
-					_insights.append("Contradiction: %s vs %s" % [c.data.clue_name, contra.data.clue_name if contra.data else contra_id])
+				if (
+					contra
+					and contra.clarity > CONTRADICTION_THRESHOLD
+					and c.clarity > CONTRADICTION_THRESHOLD
+				):
+					_insights.append(
+						(
+							"Contradiction: %s vs %s"
+							% [
+								c.data.clue_name,
+								contra.data.clue_name if contra.data else contra_id
+							]
+						)
+					)
 	avg_clarity = (sum / float(count)) if count > 0 else 0.0
-	var progress: float = clampf(avg_clarity * 0.6 + (float(total_unlocked) / float(maxi(total_registered, 1))) * 0.4, 0.0, 1.0)
+	var progress: float = clampf(
+		avg_clarity * 0.6 + (float(total_unlocked) / float(maxi(total_registered, 1))) * 0.4,
+		0.0,
+		1.0
+	)
 	last_progress = progress
 	graph_progressed.emit(progress, _insights.duplicate())
 

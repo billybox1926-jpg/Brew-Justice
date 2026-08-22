@@ -119,11 +119,17 @@ func _setup_audio_bus() -> void:
 		_effects["bandpass"] = _find_effect_by_name(sfx_idx, "BandPassFilter")
 
 	if not _effects["lowpass"]:
-		push_warning("AudioBusManager: LowPassFilter not found on %s bus — cutoffs inactive" % SFX_BUS_NAME)
+		push_warning(
+			"AudioBusManager: LowPassFilter not found on %s bus — cutoffs inactive" % SFX_BUS_NAME
+		)
 	if not _effects["highpass"]:
-		push_warning("AudioBusManager: HighPassFilter not found on %s bus — cutoffs inactive" % SFX_BUS_NAME)
+		push_warning(
+			"AudioBusManager: HighPassFilter not found on %s bus — cutoffs inactive" % SFX_BUS_NAME
+		)
 	if not _effects["bandpass"]:
-		push_warning("AudioBusManager: BandPassFilter not found on %s bus — tune-in inactive" % SFX_BUS_NAME)
+		push_warning(
+			"AudioBusManager: BandPassFilter not found on %s bus — tune-in inactive" % SFX_BUS_NAME
+		)
 
 
 func _find_effect_by_name(bus_idx: int, name: String) -> AudioEffect:
@@ -146,7 +152,9 @@ func _reset_targets() -> void:
 		_target_high_cutoff = highpass.cutoff_hz
 		_target_high_q = highpass.resonance
 	if bandpass:
-		_target_band_cutoff = bandpass.cutoff_hz if bandpass.get("cutoff_hz") != null else bandpass.frequency
+		_target_band_cutoff = (
+			bandpass.cutoff_hz if bandpass.get("cutoff_hz") != null else bandpass.frequency
+		)
 		_target_band_q = bandpass.Q
 
 	_current_low_cutoff = _target_low_cutoff
@@ -170,7 +178,11 @@ func _start_cafe_ambience() -> void:
 	var ambient := get_node_or_null("../AmbientAudio") as AudioStreamPlayer2D
 	if ambient and ambient.stream == null:
 		ambient.bus = SFX_BUS_NAME
-		ambient.stream = load("res://resources/cafe_ambience.tres") if ResourceLoader.exists("res://resources/cafe_ambience.tres") else null
+		ambient.stream = (
+			load("res://resources/cafe_ambience.tres")
+			if ResourceLoader.exists("res://resources/cafe_ambience.tres")
+			else null
+		)
 		if ambient.stream == null:
 			ambient.stream = _make_placeholder_stream()
 		ambient.play()
@@ -190,7 +202,9 @@ func _make_placeholder_stream() -> AudioStream:
 	return wav
 
 
-func update_targets(mode: String, stim_holding: bool, tune_active: bool, focus_active: bool) -> void:
+func update_targets(
+	mode: String, stim_holding: bool, tune_active: bool, focus_active: bool
+) -> void:
 	match mode:
 		"Baseline":
 			_target_low_cutoff = 180.0
@@ -235,21 +249,27 @@ func apply_chaos_band(band: String, intensity: float) -> void:
 	var bias: Callable = _load_colorblind_bias(prefs)
 	var base_cutoff := CHAOS_BAND_DEFAULT_CUTOFF
 	match band:
-		"low":    base_cutoff = CHAOS_BAND_LOW_CUTOFF
-		"mid":    base_cutoff = CHAOS_BAND_MID_CUTOFF
-		"high":   base_cutoff = CHAOS_BAND_HIGH_CUTOFF
-		_:        base_cutoff = CHAOS_BAND_DEFAULT_CUTOFF
+		"low":
+			base_cutoff = CHAOS_BAND_LOW_CUTOFF
+		"mid":
+			base_cutoff = CHAOS_BAND_MID_CUTOFF
+		"high":
+			base_cutoff = CHAOS_BAND_HIGH_CUTOFF
+		_:
+			base_cutoff = CHAOS_BAND_DEFAULT_CUTOFF
 	var biased_cutoff: float = bias.call(base_cutoff, band, intensity)
-	_target_band_cutoff = lerpf(_target_band_cutoff, biased_cutoff, intensity * CHAOS_BAND_LERP_SCALE)
-	_target_band_q = lerpf(_target_band_q, maxf(_target_band_q, CHAOS_BAND_Q_MIN), intensity * CHAOS_BAND_Q_LERP_SCALE)
+	_target_band_cutoff = lerpf(
+		_target_band_cutoff, biased_cutoff, intensity * CHAOS_BAND_LERP_SCALE
+	)
+	_target_band_q = lerpf(
+		_target_band_q, maxf(_target_band_q, CHAOS_BAND_Q_MIN), intensity * CHAOS_BAND_Q_LERP_SCALE
+	)
 
 
 static func _load_colorblind_bias(prefs: Node) -> Callable:
 	if prefs and prefs.has_method("is_colorblind_mode") and prefs.is_colorblind_mode():
-		return func(base: float, _band: String, _intensity: float) -> float:
-				return base * 0.85
-	return func(base: float, _band: String, _intensity: float) -> float:
-		return base
+		return func(base: float, _band: String, _intensity: float) -> float: return base * 0.85
+	return func(base: float, _band: String, _intensity: float) -> float: return base
 
 
 func _glide_filters(delta: float) -> void:
@@ -297,18 +317,20 @@ var _chatter_state: float = 0.0
 var _clink_timer: float = 0.0
 var _clink_amp: float = 0.0
 
-
 var _room_mix: float = CAFE_ROOM_MIX
 var _chatter_drive: float = CAFE_CHATTER_DRIVE
 
 
 func _generate_sample() -> float:
 	_time += 1.0 / 44100.0
-	var room := _room_mix * (
-		sin(TAU * 72.0 * _time) +
-		0.45 * sin(TAU * 43.0 * _time) +
-		0.7 * sin(TAU * 111.0 * _time) +
-		0.35 * sin(TAU * 142.0 * _time)
+	var room := (
+		_room_mix
+		* (
+			sin(TAU * 72.0 * _time)
+			+ 0.45 * sin(TAU * 43.0 * _time)
+			+ 0.7 * sin(TAU * 111.0 * _time)
+			+ 0.35 * sin(TAU * 142.0 * _time)
+		)
 	)
 	_chatter_state += 0.008
 	var noise := randf() * 2.0 - 1.0
@@ -330,5 +352,6 @@ func set_world_calm(calm: float) -> void:
 	var room := lerpf(WORLD_CALM_ROOM_MIN, WORLD_CALM_ROOM_MAX, safe_calm)
 	_chatter_drive = chatter
 	_room_mix = room
+
 
 var ambient_bus_index: int = -1

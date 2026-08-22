@@ -1,9 +1,9 @@
 extends Control
 class_name FocusModeMain
 
-signal reset_requested()
-signal investigation_passed()
-signal investigation_blocked()
+signal reset_requested
+signal investigation_passed
+signal investigation_blocked
 signal world_listeners_updated(presence: float)
 signal calm_changed(calm: float)
 signal deduction_updated(progress: float, insight_text: String)
@@ -58,8 +58,15 @@ var investigation_clue_idx := 0
 var investigation_emitted := false
 var investigation_resolve_duration := 0.0
 var active_clue_id: String = ""
-func INVESTIGATION_COOLDOWN() -> float: return 3.0
-func INVESTIGATION_RESOLVE_TIME() -> float: return 1.2
+
+
+func INVESTIGATION_COOLDOWN() -> float:
+	return 3.0
+
+
+func INVESTIGATION_RESOLVE_TIME() -> float:
+	return 1.2
+
 
 # Style
 const TRAIL_MIN_POINTS := 14
@@ -79,17 +86,32 @@ var track_points: PackedVector2Array = PackedVector2Array()
 var track_steps := 280
 var drops := []
 var drop_count := 160
-var SMELL := PackedVector2Array([
-	Vector2(460, 576), Vector2(525, 524), Vector2(615, 474),
-	Vector2(700, 480), Vector2(750, 520)
-])
-var odor_points := PackedVector2Array(
-	PackedVector2Array([Vector2(502, 564), Vector2(571, 514), Vector2(658, 486), Vector2(740, 494), Vector2(736, 512)])
+var SMELL := PackedVector2Array(
+	[Vector2(460, 576), Vector2(525, 524), Vector2(615, 474), Vector2(700, 480), Vector2(750, 520)]
 )
-var hazard := PackedVector2Array([
-	Vector2(462,572),Vector2(502,552),Vector2(534,528),Vector2(582,512),
-	Vector2(618,518),Vector2(654,524),Vector2(694,510),Vector2(736,518)
-])
+var odor_points := PackedVector2Array(
+	PackedVector2Array(
+		[
+			Vector2(502, 564),
+			Vector2(571, 514),
+			Vector2(658, 486),
+			Vector2(740, 494),
+			Vector2(736, 512)
+		]
+	)
+)
+var hazard := PackedVector2Array(
+	[
+		Vector2(462, 572),
+		Vector2(502, 552),
+		Vector2(534, 528),
+		Vector2(582, 512),
+		Vector2(618, 518),
+		Vector2(654, 524),
+		Vector2(694, 510),
+		Vector2(736, 518)
+	]
+)
 var trail_offset := -6.0
 var TRAIL := PackedVector2Array()
 
@@ -245,7 +267,6 @@ func _load_profile_from_manifest(profile_id: String) -> DisruptorProfile:
 	return null
 
 
-
 func _focus_mode_phase_label(phase: int) -> String:
 	match phase:
 		SensoryCrimeLoop.Phase.OBSERVE:
@@ -271,11 +292,20 @@ func _setup_demo_inputs() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		if sensory_crime_loop:
-			if InputMap.has_action("demo_overload") and InputMap.action_has_event("demo_overload", event):
+			if (
+				InputMap.has_action("demo_overload")
+				and InputMap.action_has_event("demo_overload", event)
+			):
 				sensory_crime_loop.trigger_overload()
-			elif InputMap.has_action("demo_stim_toggle") and InputMap.action_has_event("demo_stim_toggle", event):
+			elif (
+				InputMap.has_action("demo_stim_toggle")
+				and InputMap.action_has_event("demo_stim_toggle", event)
+			):
 				focus.toggle()
-			elif InputMap.has_action("demo_tune_in") and InputMap.action_has_event("demo_tune_in", event):
+			elif (
+				InputMap.has_action("demo_tune_in")
+				and InputMap.action_has_event("demo_tune_in", event)
+			):
 				sensory_crime_loop.trigger_tune_in()
 		if event.is_action_pressed("focus_toggle"):
 			focus.toggle()
@@ -368,7 +398,16 @@ func _update_canvas(delta: float) -> void:
 	var mode: String = meter.mode_name()
 	var tune_active := investigation_phase == InvestigationPhase.TuneIn and investigation_emitted
 	audio_manager.update_targets(mode, stim.holding, tune_active, focus_active)
-	sensory_canvas.set_state(presence, chaos, 0.0 if investigation_phase != InvestigationPhase.TuneIn else int(investigation_emitted) + 0.0, smoothstep(0.0, 1.0, presence))
+	sensory_canvas.set_state(
+		presence,
+		chaos,
+		(
+			0.0
+			if investigation_phase != InvestigationPhase.TuneIn
+			else int(investigation_emitted) + 0.0
+		),
+		smoothstep(0.0, 1.0, presence)
+	)
 	var trail := _computed_trail_points()
 	sensory_canvas.set_trail(trail)
 	if sensory_canvas.has_method("set_trail_target") and scene_view:
@@ -420,7 +459,6 @@ func _active_clue_if_any() -> void:
 		if data and not evidence_board._clue_states.get(id, 0.0):
 			active_clue_id = id
 			break
-
 
 
 func _reset_investigation() -> void:
@@ -477,7 +515,9 @@ func _try_advance_investigation_on_pulse() -> void:
 func _try_advance_investigation_on_chaos(strength: float) -> void:
 	if investigation_phase != InvestigationPhase.TuneIn:
 		return
-	clue_resolve_progress = move_toward(clue_resolve_progress, 0.0, strength * CLUE_RESOLVE_CHAOS_PENALTY)
+	clue_resolve_progress = move_toward(
+		clue_resolve_progress, 0.0, strength * CLUE_RESOLVE_CHAOS_PENALTY
+	)
 	investigation_emitted = false
 
 
@@ -561,12 +601,18 @@ func _hide_caption() -> void:
 
 func _phase_caption(phase: int) -> String:
 	match phase:
-		SensoryCrimeLoop.Phase.OBSERVE: return " observing..."
-		SensoryCrimeLoop.Phase.OVERLOAD: return "Overload — sensory noise rising"
-		SensoryCrimeLoop.Phase.STIM: return "Stim — co-regulation available"
-		SensoryCrimeLoop.Phase.TUNE_IN: return "Tune-in — follow the scent"
-		SensoryCrimeLoop.Phase.RESOLVE: return "Resolve — clue available"
-		_: return ""
+		SensoryCrimeLoop.Phase.OBSERVE:
+			return " observing..."
+		SensoryCrimeLoop.Phase.OVERLOAD:
+			return "Overload — sensory noise rising"
+		SensoryCrimeLoop.Phase.STIM:
+			return "Stim — co-regulation available"
+		SensoryCrimeLoop.Phase.TUNE_IN:
+			return "Tune-in — follow the scent"
+		SensoryCrimeLoop.Phase.RESOLVE:
+			return "Resolve — clue available"
+		_:
+			return ""
 
 
 func _update_disruption_overlay() -> void:
@@ -648,6 +694,7 @@ func _input_map_add_or_replace(action: String, key: Key) -> void:
 
 # === Track + smear + odor locator ===
 
+
 func build_trail() -> void:
 	TRAIL = _trail_for(track_points, trail_offset)
 
@@ -683,10 +730,18 @@ func _update_trail_legibility(delta: float) -> void:
 	var focus_bonus: float = 0.28 if investigation_phase == InvestigationPhase.TuneIn else 0.0
 	var density: float = clampf(presence * 0.8 + focus_bonus, 0.2, 1.0)
 	trail_target_len = TRAIL_MIN_POINTS + int(floor(density * float(TRAIL_STEP_POINTS)))
-	trail_target_len = clamp(trail_target_len, TRAIL_MIN_POINTS, TRAIL_MIN_POINTS + TRAIL_STEP_POINTS)
-	trail_current_len = lerp(float(trail_current_len), float(trail_target_len), 1.0 - exp(-HIGHLIGHT_SMOOTH * delta))
-	trail_current_len = clamp(trail_current_len, float(TRAIL_MIN_POINTS), float(TRAIL_MIN_POINTS + TRAIL_STEP_POINTS))
-	trail_dash_step = int(lerp(float(TRAIL_DASH_MAX_STEP), maxf(6.0, TRAIL_DASH_MAX_STEP / 3.0), density))
+	trail_target_len = clamp(
+		trail_target_len, TRAIL_MIN_POINTS, TRAIL_MIN_POINTS + TRAIL_STEP_POINTS
+	)
+	trail_current_len = lerp(
+		float(trail_current_len), float(trail_target_len), 1.0 - exp(-HIGHLIGHT_SMOOTH * delta)
+	)
+	trail_current_len = clamp(
+		trail_current_len, float(TRAIL_MIN_POINTS), float(TRAIL_MIN_POINTS + TRAIL_STEP_POINTS)
+	)
+	trail_dash_step = int(
+		lerp(float(TRAIL_DASH_MAX_STEP), maxf(6.0, TRAIL_DASH_MAX_STEP / 3.0), density)
+	)
 	trail_highlight_strength = clamp(density + (0.3 if focus_active else 0.0), 0.0, 1.0)
 	trail_shape_idx = (trail_shape_idx + 1) % TRAIL_SHAPE_COUNT if delta > 0.0 else trail_shape_idx
 
@@ -708,17 +763,20 @@ func _computed_trail_points() -> PackedVector2Array:
 
 # === Rain ===
 
+
 func init_drops() -> void:
 	var size := get_rect().size
 	drops.clear()
 	for i in range(drop_count):
-		drops.append({
-			"x": randf() * size.x,
-			"y": randf() * size.y,
-			"vy": 80 + randf() * 240,
-			"len": 14 + randf() * 26,
-			"alpha": 0.03 + randf() * 0.16
-		})
+		drops.append(
+			{
+				"x": randf() * size.x,
+				"y": randf() * size.y,
+				"vy": 80 + randf() * 240,
+				"len": 14 + randf() * 26,
+				"alpha": 0.03 + randf() * 0.16
+			}
+		)
 
 
 func _rain(delta: float) -> void:
@@ -731,6 +789,7 @@ func _rain(delta: float) -> void:
 
 
 # === UI ===
+
 
 func _setup_ui() -> void:
 	sensory = clamp(sensory, 0.0, 100.0)
@@ -773,25 +832,44 @@ func _update_ui() -> void:
 	if tire_clue:
 		if investigation_phase == InvestigationPhase.TuneIn:
 			var clamped_idx: int = min(investigation_clue_idx, 3)
-			var target_a: float = 0.22 + float(clamped_idx) * 0.18 + (0.18 if investigation_emitted else 0.0)
-			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, min(target_a, 0.96), get_process_delta_time() * 4.0)
+			var target_a: float = (
+				0.22 + float(clamped_idx) * 0.18 + (0.18 if investigation_emitted else 0.0)
+			)
+			tire_clue.modulate.a = move_toward(
+				tire_clue.modulate.a, min(target_a, 0.96), get_process_delta_time() * 4.0
+			)
 			var neon_strength: float = clampf(clue_resolve_progress, 0.0, 1.0)
-			tire_clue.modulate = tire_clue.modulate.lerp(Color(1.0, 0.9, 0.6, tire_clue.modulate.a), neon_strength * get_process_delta_time() * 4.0)
-			tire_clue.scale = tire_clue.scale.lerp(Vector2.ONE * (1.0 + neon_strength * 0.15), get_process_delta_time() * 4.0)
+			tire_clue.modulate = tire_clue.modulate.lerp(
+				Color(1.0, 0.9, 0.6, tire_clue.modulate.a),
+				neon_strength * get_process_delta_time() * 4.0
+			)
+			tire_clue.scale = tire_clue.scale.lerp(
+				Vector2.ONE * (1.0 + neon_strength * 0.15), get_process_delta_time() * 4.0
+			)
 		elif investigation_phase == InvestigationPhase.Resolved:
-			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, 0.98, get_process_delta_time() * 5.0)
-			tire_clue.modulate = tire_clue.modulate.lerp(Color(1.0, 0.95, 0.7, tire_clue.modulate.a), get_process_delta_time() * 5.0)
-			tire_clue.scale = tire_clue.scale.lerp(Vector2.ONE * 1.15, get_process_delta_time() * 5.0)
+			tire_clue.modulate.a = move_toward(
+				tire_clue.modulate.a, 0.98, get_process_delta_time() * 5.0
+			)
+			tire_clue.modulate = tire_clue.modulate.lerp(
+				Color(1.0, 0.95, 0.7, tire_clue.modulate.a), get_process_delta_time() * 5.0
+			)
+			tire_clue.scale = tire_clue.scale.lerp(
+				Vector2.ONE * 1.15, get_process_delta_time() * 5.0
+			)
 		else:
 			var clue_target := 0.18
 			if focus_active or mode != METER_MODE_BASELINE:
 				clue_target = 0.8 if mode == METER_MODE_OVERLOAD else 0.72
 			if stream_id_requested:
 				clue_target = maxf(clue_target, 0.95)
-			tire_clue.modulate.a = move_toward(tire_clue.modulate.a, clue_target, get_process_delta_time() * 4.0)
+			tire_clue.modulate.a = move_toward(
+				tire_clue.modulate.a, clue_target, get_process_delta_time() * 4.0
+			)
 	if tire_smudge:
 		var smudge_target := 0.08 if focus_active or mode != METER_MODE_BASELINE else 0.75
-		tire_smudge.modulate.a = move_toward(tire_smudge.modulate.a, smudge_target, get_process_delta_time() * 5.0)
+		tire_smudge.modulate.a = move_toward(
+			tire_smudge.modulate.a, smudge_target, get_process_delta_time() * 5.0
+		)
 
 
 func _apply_colorblind_mode(enabled: bool) -> void:
@@ -810,7 +888,9 @@ func _apply_colorblind_mode(enabled: bool) -> void:
 func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
 	if not _prefs or not _prefs.colorblind_mode:
 		label.add_theme_font_size_override("font_size", 14)
-		label.text = "%s · %s — %0.f%%" % [FOCUS_TEXT_INACTIVE if not is_focused else "FOCUS", mode, sensory]
+		label.text = (
+			"%s · %s — %0.f%%" % [FOCUS_TEXT_INACTIVE if not is_focused else "FOCUS", mode, sensory]
+		)
 		if not is_focused:
 			if mode == METER_MODE_BASELINE:
 				label.add_theme_color_override("font_color", Color(0.518, 0.506, 0.471))
@@ -821,7 +901,10 @@ func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
 		return
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
-	label.text = "%s · %s — %.0f%%" % [FOCUS_TEXT_ACTIVE if is_focused else FOCUS_TEXT_INACTIVE, mode, sensory]
+	label.text = (
+		"%s · %s — %.0f%%"
+		% [FOCUS_TEXT_ACTIVE if is_focused else FOCUS_TEXT_INACTIVE, mode, sensory]
+	)
 
 
 static func maxf(a: float, b: float) -> float:

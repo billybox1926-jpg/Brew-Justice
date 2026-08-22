@@ -6,7 +6,7 @@ signal clarity_changed(clue_id: String, clarity: float)
 @export var clue_data: ClueData
 
 var _presence: float = 0.0
-var _clarity: float = 0.0   # 0.0 = invisible/illegible, 1.0 = fully resolved
+var _clarity: float = 0.0  # 0.0 = invisible/illegible, 1.0 = fully resolved
 var _clarity_target: float = 0.0
 var _smoothing: float = 0.02
 
@@ -15,7 +15,9 @@ func apply_presence(value: float) -> void:
 	_presence = clamp(value, 0.0, 1.0)
 	if clue_data:
 		var edge := 0.2
-		_clarity_target = smoothstep(clue_data.presence_threshold - edge, clue_data.presence_threshold + 0.1, _presence)
+		_clarity_target = smoothstep(
+			clue_data.presence_threshold - edge, clue_data.presence_threshold + 0.1, _presence
+		)
 	else:
 		_clarity_target = _presence
 	_clarity = move_toward(_clarity, _clarity_target, _smoothing)

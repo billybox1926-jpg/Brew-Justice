@@ -37,7 +37,12 @@ func _init() -> void:
 			_failures.append("code connects to `%s` but WIRING.md omits it" % handler)
 
 	# 4. AudioBusManager creates SFX bus + three filters, as documented.
-	for needle in ["add_bus()", "AudioEffectLowPassFilter", "AudioEffectHighPassFilter", "AudioEffectBandPassFilter"]:
+	for needle in [
+		"add_bus()",
+		"AudioEffectLowPassFilter",
+		"AudioEffectHighPassFilter",
+		"AudioEffectBandPassFilter"
+	]:
 		if not audio_src.contains(needle):
 			_failures.append("audio_bus_manager.gd lost expected wiring: %s" % needle)
 
@@ -49,10 +54,25 @@ func _init() -> void:
 		get_root().add_child(scene)
 		for i in range(5):
 			await process_frame
-		for node_name in ["AudioBusManager", "SensoryCanvas", "Disruptor", "DisruptionOverlay", "ObserverLight", "NpcRegular", "SceneView", "AmbientAudio"]:
+		for node_name in [
+			"AudioBusManager",
+			"SensoryCanvas",
+			"Disruptor",
+			"DisruptionOverlay",
+			"ObserverLight",
+			"NpcRegular",
+			"SceneView",
+			"AmbientAudio"
+		]:
 			if scene.find_child(node_name, true, false) == null:
 				_failures.append("scene node documented in WIRING.md missing: %s" % node_name)
-		for sig in ["reset_requested", "investigation_passed", "investigation_blocked", "world_listeners_updated", "calm_changed"]:
+		for sig in [
+			"reset_requested",
+			"investigation_passed",
+			"investigation_blocked",
+			"world_listeners_updated",
+			"calm_changed"
+		]:
 			if not scene.has_signal(sig):
 				_failures.append("outbound signal documented in WIRING.md missing: %s" % sig)
 		scene.queue_free()
@@ -82,7 +102,7 @@ func _read_file(path: String) -> String:
 func _registered_actions(src: String) -> Array[String]:
 	var out: Array[String] = []
 	var re := RegEx.new()
-	re.compile("_input_map_add_or_replace\\(\"([a-z_]+)\"")
+	re.compile('_input_map_add_or_replace\\("([a-z_]+)"')
 	for m in re.search_all(src):
 		out.append(m.get_string(1))
 	return out

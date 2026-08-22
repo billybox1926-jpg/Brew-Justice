@@ -44,7 +44,9 @@ func _draw() -> void:
 	var size := get_rect().size
 	var flicker := sin(_flicker_time * 1.7) * cos(_flicker_time * 0.73)
 	var y_offset := flicker * max_jitter_pixels * chaos
-	var edge_alpha: float = neon_color.a * (EDGE_ALPHA_BASE + absf(flicker) * EDGE_ALPHA_DRIVE) * chaos
+	var edge_alpha: float = (
+		neon_color.a * (EDGE_ALPHA_BASE + absf(flicker) * EDGE_ALPHA_DRIVE) * chaos
+	)
 	var edge_color := neon_color
 	edge_color.a = clamp(edge_alpha, minimum_edge_alpha, neon_color.a)
 
@@ -53,7 +55,12 @@ func _draw() -> void:
 	if chaos > core_threshold:
 		var core_color := Color.WHITE
 		core_color.a = (chaos - core_threshold) * core_alpha_scale
-		draw_line(Vector2(0.0, y_offset * 0.45), Vector2(size.x, y_offset * 0.45), core_color, max(line_thickness * CORE_LINE_SCALE, CORE_LINE_MIN))
+		draw_line(
+			Vector2(0.0, y_offset * 0.45),
+			Vector2(size.x, y_offset * 0.45),
+			core_color,
+			max(line_thickness * CORE_LINE_SCALE, CORE_LINE_MIN)
+		)
 
 
 func _update_sleep_state() -> void:

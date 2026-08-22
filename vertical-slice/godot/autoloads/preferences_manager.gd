@@ -3,7 +3,7 @@ extends Node
 ## Persistent accessibility, audio, and input preferences.
 ## Loaded automatically at startup via project autoload.
 
-signal preferences_updated()
+signal preferences_updated
 
 const SAVE_PATH := "user://brew_justice_prefs.cfg"
 

@@ -45,14 +45,18 @@ func _process(delta: float) -> bool:
 			_release("stim_hold")
 		5.0:
 			_press("focus_toggle")
-			root.get_tree().create_timer(0.1).timeout.connect(func() -> void: _release("focus_toggle"))
+			root.get_tree().create_timer(0.1).timeout.connect(
+				func() -> void: _release("focus_toggle")
+			)
 		6.3:
 			var disruptor := _scene.find_child("Disruptor", true, false)
 			if disruptor and disruptor.has_method("trigger_pulse"):
 				disruptor.trigger_pulse()
 		7.2:
 			_press("focus_toggle")
-			root.get_tree().create_timer(0.1).timeout.connect(func() -> void: _release("focus_toggle"))
+			root.get_tree().create_timer(0.1).timeout.connect(
+				func() -> void: _release("focus_toggle")
+			)
 		8.5:
 			var canvas := _scene.find_child("SensoryCanvas", true, false)
 			if canvas:

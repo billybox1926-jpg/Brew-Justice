@@ -1,5 +1,6 @@
 extends DisruptorVariant
 
+
 ## "Patterned broadcast" — a repeating 1-2-1 cadence that reads as
 ## intentional, as if someone is transmitting on purpose.
 func _init() -> void:

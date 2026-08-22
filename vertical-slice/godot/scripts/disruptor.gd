@@ -47,11 +47,16 @@ func _apply_variant() -> void:
 
 func _style_strength(style: String, base: float) -> float:
 	match style:
-		"pulse": return base
-		"drift": return base * 0.7
-		"burst": return base * 1.4
-		"wave": return base * (0.6 + 0.4 * sin(Time.get_ticks_msec() / 1000.0))
-		_: return base
+		"pulse":
+			return base
+		"drift":
+			return base * 0.7
+		"burst":
+			return base * 1.4
+		"wave":
+			return base * (0.6 + 0.4 * sin(Time.get_ticks_msec() / 1000.0))
+		_:
+			return base
 
 
 func _apply_profile() -> void:

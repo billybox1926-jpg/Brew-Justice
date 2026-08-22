@@ -103,6 +103,23 @@ facing overview, see [README.md](README.md).
 No local builds are required for this repo — push to CI and watch it. Keep the
 working tree clean and let CI catch formatting/lint.
 
+### GDScript formatting & linting
+
+GDScript is formatted with [gdtoolkit](https://github.com/Scony/godot-gdscript-toolkit)
+(gdformat + gdlint, Godot 4.x line). Check locally:
+
+```bash
+pip install "gdtoolkit==4.*"
+bash scripts/check_gdscript.sh        # check only
+bash scripts/check_gdscript.sh --fix  # auto-format
+```
+
+CI runs the same command on every PR. Optional pre-commit hook:
+`pip install pre-commit && pre-commit install` (config in
+`.pre-commit-config.yaml`). Lint rules that would demand mass renames of
+existing slice code are disabled in `vertical-slice/godot/gdlintrc` — keep
+PR noise low; tighten rules per-file as files are touched.
+
 ## Code of conduct
 
 This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). By

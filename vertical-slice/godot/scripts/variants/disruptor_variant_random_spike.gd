@@ -1,5 +1,6 @@
 extends DisruptorVariant
 
+
 ## "Random spike" — irregular, sharp static strokes with no clear period.
 ## Feels like a release valve blowing off steam or a loose connection.
 func _init() -> void:
