@@ -30,6 +30,10 @@ var story_beat_overload: StoryBeat
 var _prefs: Node
 ## Session-state persistence owner (issue #57).
 var _state: Node
+## Focus-mode transition dim (issue #54).
+var focus_fade: FocusTransitionFade
+## Ambient duck while key audio plays (issue #51).
+var audio_ducker: AudioDucker
 ## Opt-in narration for insight text (issue #46); speaks only when
 ## PreferencesManager.tts_enabled is true.
 var _narrative_tts: NarrativeTTS
@@ -168,6 +172,12 @@ func _ready() -> void:
 	_setup_sensory_crime_loop()
 	_setup_preferences()
 	_setup_game_state()
+	focus_fade = FocusTransitionFade.new()
+	focus_fade.name = "FocusTransitionFade"
+	add_child(focus_fade)
+	audio_ducker = AudioDucker.new()
+	audio_ducker.name = "AudioDucker"
+	add_child(audio_ducker)
 	disruption_overlay = disruption_overlay_node
 	if disruptor:
 		if disruptor.has_signal("chaos_pulse"):
@@ -497,6 +507,8 @@ func _on_focus_changed(active: bool) -> void:
 	else:
 		stream_id_requested = false
 	focus_active = active
+	if focus_fade:
+		focus_fade.set_focus(active)
 
 
 func _on_stim_released(strength: float) -> void:
@@ -741,6 +753,10 @@ func _on_beat_resolved(insight_text: String) -> void:
 		investigation_ui.show_insight(insight_text)
 	if _narrative_tts:
 		_narrative_tts.speak(insight_text)
+	# Duck ambient while key audio (insight/narration) plays (issue #51).
+	if audio_ducker:
+		audio_ducker.push_duck()
+		get_tree().create_timer(3.0).timeout.connect(audio_ducker.pop_duck)
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:
