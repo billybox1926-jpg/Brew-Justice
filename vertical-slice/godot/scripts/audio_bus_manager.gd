@@ -50,6 +50,14 @@ const CHAOS_BAND_Q_MIN: float = 0.3
 const CHAOS_BAND_LERP_SCALE: float = 0.3
 const CHAOS_BAND_Q_LERP_SCALE: float = 0.5
 
+## Loudness safety (issue #50). A Limiter on the SFX bus hard-caps output so
+## chaos spikes can never exceed CEILING_DB regardless of source loudness.
+## Contributor mix targets live in docs/audio-loudness.md; these constants
+## are the enforced part of that policy.
+const LIMITER_CEILING_DB: float = -6.0
+const LIMITER_THRESHOLD_DB: float = -9.0
+const LIMITER_RELEASE_SEC: float = 0.1
+
 ## World reactivity.
 const WORLD_CALM_CHATTER_MIN: float = 0.32
 const WORLD_CALM_CHATTER_MAX: float = 0.52
@@ -129,6 +137,21 @@ func _setup_audio_bus() -> void:
 	if not _effects["bandpass"]:
 		push_warning(
 			"AudioBusManager: BandPassFilter not found on %s bus — tune-in inactive" % SFX_BUS_NAME
+		)
+
+	# Loudness ceiling (issue #50): limiter LAST on the chain so every
+	# filtered signal is capped before reaching Master.
+	var limiter := _find_effect_by_name(sfx_idx, "LoudnessLimiter")
+	if not limiter:
+		var lim := AudioEffectLimiter.new()
+		lim.resource_name = "LoudnessLimiter"
+		lim.ceiling_db = LIMITER_CEILING_DB
+		lim.threshold_db = LIMITER_THRESHOLD_DB
+		AudioServer.add_bus_effect(sfx_idx, lim)
+		limiter = _find_effect_by_name(sfx_idx, "LoudnessLimiter")
+	if not limiter:
+		push_warning(
+			"AudioBusManager: Limiter not found on %s bus — loudness uncapped" % SFX_BUS_NAME
 		)
 
 
