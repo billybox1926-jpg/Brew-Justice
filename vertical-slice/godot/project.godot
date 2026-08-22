@@ -11,6 +11,7 @@ config/features=PackedStringArray("4.4", "CGFloat")
 [autoload]
 
 PreferencesManager="*res://autoloads/preferences_manager.gd"
+GameStateManager="*res://autoloads/game_state_manager.gd"
 
 [display]
 
