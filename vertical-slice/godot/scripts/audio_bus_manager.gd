@@ -94,6 +94,7 @@ func _setup_audio_bus() -> void:
 	_effects["lowpass"] = _find_effect_by_name(sfx_idx, "LowPassFilter")
 	if not _effects["lowpass"]:
 		var fx := AudioEffectLowPassFilter.new()
+		fx.resource_name = "LowPassFilter"
 		fx.cutoff_hz = BASELINE_LOW_CUTOFF
 		fx.resonance = BASELINE_LOW_Q
 		AudioServer.add_bus_effect(sfx_idx, fx)
@@ -102,6 +103,7 @@ func _setup_audio_bus() -> void:
 	_effects["highpass"] = _find_effect_by_name(sfx_idx, "HighPassFilter")
 	if not _effects["highpass"]:
 		var fx := AudioEffectHighPassFilter.new()
+		fx.resource_name = "HighPassFilter"
 		fx.cutoff_hz = BASELINE_HIGH_CUTOFF
 		fx.resonance = BASELINE_HIGH_Q
 		AudioServer.add_bus_effect(sfx_idx, fx)
@@ -110,8 +112,9 @@ func _setup_audio_bus() -> void:
 	_effects["bandpass"] = _find_effect_by_name(sfx_idx, "BandPassFilter")
 	if not _effects["bandpass"]:
 		var fx := AudioEffectBandPassFilter.new()
+		fx.resource_name = "BandPassFilter"
 		fx.cutoff_hz = BASELINE_BAND_CUTOFF
-		fx.Q = BASELINE_BAND_Q
+		fx.resonance = BASELINE_BAND_Q
 		AudioServer.add_bus_effect(sfx_idx, fx)
 		_effects["bandpass"] = _find_effect_by_name(sfx_idx, "BandPassFilter")
 
