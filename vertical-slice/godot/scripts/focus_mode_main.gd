@@ -705,6 +705,8 @@ func _apply_reduced_motion() -> void:
 		disruption_overlay.reduced_motion = reduced
 	if investigation_ui:
 		investigation_ui.reduced_motion = reduced
+	if focus_fade:
+		focus_fade.reduced_motion = reduced
 
 
 ## Persistence hooks (issue #57): load prior session state, then mirror live
