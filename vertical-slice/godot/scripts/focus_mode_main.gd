@@ -682,6 +682,17 @@ func _setup_preferences() -> void:
 	if _prefs:
 		if _prefs.has_signal("preferences_updated"):
 			_prefs.preferences_updated.connect(_on_preferences_updated)
+	_apply_reduced_motion()
+
+
+## Vestibular safety (issue #44): propagate reduced_motion to every animated
+## effect owner so each shows its static fallback.
+func _apply_reduced_motion() -> void:
+	var reduced: bool = _prefs != null and bool(_prefs.reduced_motion)
+	if disruption_overlay:
+		disruption_overlay.reduced_motion = reduced
+	if investigation_ui:
+		investigation_ui.reduced_motion = reduced
 
 
 ## Persistence hooks (issue #57): load prior session state, then mirror live
@@ -860,6 +871,7 @@ func _on_preferences_updated() -> void:
 	if not _prefs:
 		return
 	_apply_colorblind_mode(_prefs.colorblind_mode)
+	_apply_reduced_motion()
 
 
 func _update_ui() -> void:

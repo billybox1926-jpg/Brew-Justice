@@ -20,6 +20,12 @@ var chaos := 0.0:
 		chaos = clamp(value, 0.0, 1.0)
 		_update_sleep_state()
 
+## Vestibular safety (issue #44): true = static edge line, no jitter/flicker.
+var reduced_motion := false:
+	set(value):
+		reduced_motion = value
+		queue_redraw()
+
 var _flicker_time := 0.0
 
 
@@ -30,7 +36,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if is_zero_approx(chaos):
+	if is_zero_approx(chaos) or reduced_motion:
 		return
 
 	_flicker_time += delta * (flicker_rate + chaos * chaos_speed_boost)
@@ -42,6 +48,14 @@ func _draw() -> void:
 		return
 
 	var size := get_rect().size
+	if reduced_motion:
+		# Low-motion alternative (issue #44): one steady edge line whose alpha
+		# tracks chaos. No positional jitter, no time-varying flicker.
+		var static_color := neon_color
+		static_color.a = clamp(neon_color.a * chaos * 2.0, minimum_edge_alpha, neon_color.a)
+		draw_line(Vector2(0.0, 0.0), Vector2(size.x, 0.0), static_color, line_thickness)
+		return
+
 	var flicker := sin(_flicker_time * 1.7) * cos(_flicker_time * 0.73)
 	var y_offset := flicker * max_jitter_pixels * chaos
 	var edge_alpha: float = (
