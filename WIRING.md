@@ -168,3 +168,28 @@ are connected to FocusModeMain automatically in `_ready()` — no manual step.
   `AudioStreamPlayer2D` named `AmbientAudio` as a child of the root.
 - **Wiring doc drift** — run `godot --headless --path . --script res://test/test_wiring_doc.gd`;
   it fails if the tables above no longer match the code.
+
+## Export / release checklist (issue #43)
+
+Export presets live in `vertical-slice/godot/export_presets.cfg`
+(Windows Desktop + Web). Validate and build with:
+
+```bash
+# One-time: install export templates for your exact Godot version
+# (e.g. 4.4.stable) into <Godot user dir>/export_templates/4.4.stable/
+
+bash scripts/check_export.sh               # validate presets + templates
+bash scripts/check_export.sh --build win   # validate + export Windows exe
+bash scripts/check_export.sh --build web   # validate + export Web build
+```
+
+`--build` produces `dist/brew-justice.exe` (~94 MB, pck embedded) or
+`dist/brew-justice.html` plus a per-target log in `dist/`. The script fails
+on missing templates, unknown platforms, parse errors in resources, or an
+absent output file. The rcedit icon/version-stamp step is optional — its
+absence only means default version metadata on the exe.
+
+Known resource-format rules (these broke exports before): every `.tres`
+needs a `[gd_resource ...]` header before `[resource]`; sub-resources must
+come before the main resource; `Color(...)` constructors need 4 components;
+script paths in `ext_resource` are project-root-relative.

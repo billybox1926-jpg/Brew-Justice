@@ -1,27 +1,9 @@
-; Evidence-graph resource manifest
-; These are designer-authored clue definitions used by
-; vertical-slice/godot/scripts/clue_graph.gd.
-;
-; Each entry documents the expected ClueData fields and
-; relationship wiring for the investigation loop.
+[gd_resource type="Resource" script_class="ClueData" load_steps=4 format=3]
 
-[resource]
+[ext_resource type="Script" path="res://scripts/clue_data.gd" id="1"]
 
-type="ClueData"
-id="smudge_pattern"
-display_name="Tread Pattern"
-description="Unusual outer-edge smudge on concrete."
-evidence_type="VISUAL"
-presence_threshold=0.7
-leads_to=["neon_symbol", "false_trail"]
-contradicts=[]
-combines_with=[]
-resolved_text="A faint tread pattern suggests heavier tires than the crash car."
-disruptor_profile_id="acoustic_bleed"
-
-[resource]
-
-type="ClueData"
+[sub_resource type="Resource" id="2"]
+script = ExtResource("1")
 id="neon_symbol"
 display_name="Neon Glyph"
 description="Partial neon sign reflection on the brickwork."
@@ -33,9 +15,8 @@ combines_with=["smudge_pattern"]
 resolved_text="The neon glyph matches a bar ten blocks east."
 disruptor_profile_id="overload_artist"
 
-[resource]
-
-type="ClueData"
+[sub_resource type="Resource" id="3"]
+script = ExtResource("1")
 id="false_trail"
 display_name="Old Brake Mark"
 description="Cured oil mark that predates the incident."
@@ -45,3 +26,16 @@ leads_to=[]
 contradicts=["neon_symbol", "smudge_pattern"]
 combines_with=[]
 resolved_text="Brake mark chemistry does not match the crash fluid."
+
+[resource]
+script = ExtResource("1")
+id="smudge_pattern"
+display_name="Tread Pattern"
+description="Unusual outer-edge smudge on concrete."
+evidence_type="VISUAL"
+presence_threshold=0.7
+leads_to=["neon_symbol", "false_trail"]
+contradicts=[]
+combines_with=[]
+resolved_text="A faint tread pattern suggests heavier tires than the crash car."
+disruptor_profile_id="acoustic_bleed"
