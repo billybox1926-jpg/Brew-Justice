@@ -14,6 +14,8 @@ const SAVE_PATH := "user://brew_justice_prefs.cfg"
 @export var trail_enabled: bool = true
 @export var trail_audio_cues: bool = true
 @export var captions_enabled: bool = true
+## Opt-in text-to-speech for narrative/insight text (issue #46). Off by default.
+@export var tts_enabled: bool = false
 var custom_bindings: Dictionary = {}
 
 
@@ -32,6 +34,7 @@ func load_or_create_defaults() -> void:
 		trail_enabled = config.get_value("accessibility", "trail_enabled", trail_enabled)
 		trail_audio_cues = config.get_value("accessibility", "trail_audio_cues", trail_audio_cues)
 		captions_enabled = config.get_value("accessibility", "captions_enabled", captions_enabled)
+		tts_enabled = config.get_value("accessibility", "tts_enabled", tts_enabled)
 		var loaded_bindings = config.get_value("input", "custom_bindings", {})
 		if typeof(loaded_bindings) == TYPE_DICTIONARY:
 			custom_bindings = loaded_bindings
@@ -49,6 +52,7 @@ func save() -> void:
 	config.set_value("accessibility", "trail_enabled", trail_enabled)
 	config.set_value("accessibility", "trail_audio_cues", trail_audio_cues)
 	config.set_value("accessibility", "captions_enabled", captions_enabled)
+	config.set_value("accessibility", "tts_enabled", tts_enabled)
 	_save_bindings_to_config(config)
 	config.save(SAVE_PATH)
 
