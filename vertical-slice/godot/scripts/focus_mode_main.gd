@@ -9,10 +9,11 @@ signal calm_changed(calm: float)
 signal deduction_updated(progress: float, insight_text: String)
 signal contradiction_noted(clue_a: String, clue_b: String)
 
-# Components
-var meter: SensoryMeter
+# Components. Typed as Node so resilience fallbacks (issue #59) can be
+# substituted when a system fails to initialize.
+var meter: Node
 var focus: FocusToggle
-var stim: StimTool
+var stim: Node
 var disruption_overlay: DisruptionOverlay
 
 var observer_light: ObserverLight
@@ -179,6 +180,7 @@ func _ready() -> void:
 	_apply_rhythm_timing()
 	_setup_controller_bindings()
 	_setup_calibration()
+	_install_fallbacks_for_missing_nodes()
 	focus_fade = FocusTransitionFade.new()
 	focus_fade.name = "FocusTransitionFade"
 	add_child(focus_fade)
@@ -931,6 +933,26 @@ func _setup_controller_bindings() -> void:
 	bindings.apply_default_joy_bindings()
 	if _prefs:
 		ControllerBindings.apply_saved_joy_bindings(_prefs)
+
+
+## Resilience (issue #59): if a required node failed its @onready lookup,
+## install a delegating no-op fallback under the expected name so the
+## rest of the slice degrades instead of crashing. Logs once, loudly.
+func _install_fallbacks_for_missing_nodes() -> void:
+	var expected := {
+		"meter": "SensoryMeter",
+		"stim": "StimTool",
+	}
+	for slot: String in expected:
+		if get(slot) == null:
+			set(slot, FallbackNode.for_missing(slot, expected[slot]))
+	if _prefs == null:
+		push_error(
+			(
+				"[Resilience] PreferencesManager autoload missing — accessibility settings "
+				+ "disabled this session; game continues with built-in defaults."
+			)
+		)
 
 
 ## Sensory calibration (issue #48): first run opens the pacing picker;
