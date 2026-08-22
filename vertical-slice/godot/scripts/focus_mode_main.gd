@@ -758,7 +758,13 @@ func _on_beat_resolved(insight_text: String) -> void:
 	# Duck ambient while key audio (insight/narration) plays (issue #51).
 	if audio_ducker:
 		audio_ducker.push_duck()
-		get_tree().create_timer(3.0).timeout.connect(audio_ducker.pop_duck)
+		get_tree().create_timer(3.0).timeout.connect(_on_duck_hold_elapsed)
+
+
+## Releases the insight duck after its hold window (issue #51).
+func _on_duck_hold_elapsed() -> void:
+	if audio_ducker:
+		audio_ducker.pop_duck()
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:
