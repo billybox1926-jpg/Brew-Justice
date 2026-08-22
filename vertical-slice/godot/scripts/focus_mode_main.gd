@@ -30,6 +30,8 @@ var story_beat_overload: StoryBeat
 var _prefs: Node
 ## Session-state persistence owner (issue #57).
 var _state: Node
+## Focus-mode transition dim (issue #54).
+var focus_fade: FocusTransitionFade
 ## Opt-in narration for insight text (issue #46); speaks only when
 ## PreferencesManager.tts_enabled is true.
 var _narrative_tts: NarrativeTTS
@@ -168,6 +170,9 @@ func _ready() -> void:
 	_setup_sensory_crime_loop()
 	_setup_preferences()
 	_setup_game_state()
+	focus_fade = FocusTransitionFade.new()
+	focus_fade.name = "FocusTransitionFade"
+	add_child(focus_fade)
 	disruption_overlay = disruption_overlay_node
 	if disruptor:
 		if disruptor.has_signal("chaos_pulse"):
@@ -497,6 +502,8 @@ func _on_focus_changed(active: bool) -> void:
 	else:
 		stream_id_requested = false
 	focus_active = active
+	if focus_fade:
+		focus_fade.set_focus(active)
 
 
 func _on_stim_released(strength: float) -> void:
@@ -693,6 +700,8 @@ func _apply_reduced_motion() -> void:
 		disruption_overlay.reduced_motion = reduced
 	if investigation_ui:
 		investigation_ui.reduced_motion = reduced
+	if focus_fade:
+		focus_fade.reduced_motion = reduced
 
 
 ## Persistence hooks (issue #57): load prior session state, then mirror live
