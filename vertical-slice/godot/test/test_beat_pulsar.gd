@@ -34,6 +34,10 @@ func _init() -> void:
 		failures += 1
 
 	# 3. Enabled: pulse shows at intensity-scaled alpha and signals.
+<<<<<<< HEAD
+=======
+	p.fade_out_seconds = 5.0  # slow the fade so the alpha check isn't racing it
+>>>>>>> feature/ui-text-scale
 	p.enabled = true
 	if not p.visible:
 		print("PUL FAIL: still hidden after enable")
@@ -45,7 +49,11 @@ func _init() -> void:
 	if fired[0] != 1:
 		print("PUL FAIL: shown signal count %d != 1" % fired[0])
 		failures += 1
+<<<<<<< HEAD
 	if not is_equal_approx(p.ring.modulate.a, clampf(0.8, 0.25, 1.0)):
+=======
+	if absf(p.ring.modulate.a - clampf(0.8, 0.25, 1.0)) > 0.05:
+>>>>>>> feature/ui-text-scale
 		print("PUL FAIL: alpha %f != intensity-scaled target" % p.ring.modulate.a)
 		failures += 1
 

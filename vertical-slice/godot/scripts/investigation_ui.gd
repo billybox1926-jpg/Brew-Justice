@@ -18,8 +18,7 @@ func _ready() -> void:
 	label.anchors_preset = Control.PRESET_CENTER
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 24)
-	label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.85, 0.0))
+	UiText.new().apply_to_label(label, UiText.BASE_INSIGHT_SIZE, Color(0.95, 0.95, 0.85))
 	label.text = default_text
 	label.visible = false
 	add_child(label)
