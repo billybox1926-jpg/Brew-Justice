@@ -170,6 +170,7 @@ func _ready() -> void:
 	_setup_sensory_crime_loop()
 	_setup_preferences()
 	_setup_game_state()
+	_apply_rhythm_timing()
 	focus_fade = FocusTransitionFade.new()
 	focus_fade.name = "FocusTransitionFade"
 	add_child(focus_fade)
@@ -881,6 +882,13 @@ func _on_preferences_updated() -> void:
 		return
 	_apply_colorblind_mode(_prefs.colorblind_mode)
 	_apply_reduced_motion()
+	_apply_rhythm_timing()
+
+
+## Rhythm tolerance (issue #47): push the timing mode into the stim tool.
+func _apply_rhythm_timing() -> void:
+	if stim and _prefs:
+		stim.timing_mode = str(_prefs.rhythm_timing)
 
 
 func _update_ui() -> void:
