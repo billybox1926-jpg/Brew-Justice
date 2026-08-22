@@ -31,6 +31,10 @@ const SAVE_PATH := "user://brew_justice_prefs.cfg"
 ## Visual beat pulsar for deaf/hard-of-hearing players (issue #49).
 ## Off by default; opt-in.
 @export var beat_pulsar_enabled: bool = false
+## Gamepad vibration feedback (issue #55). Off by default; opt-in.
+@export var haptics_enabled: bool = false
+## Haptic strength 0.0 (off) to 1.0 (full); scales every vibration.
+@export_range(0.0, 1.0, 0.05) var haptics_intensity: float = 0.6
 var custom_bindings: Dictionary = {}
 
 
@@ -58,6 +62,12 @@ func load_or_create_defaults() -> void:
 		beat_pulsar_enabled = config.get_value(
 			"accessibility", "beat_pulsar_enabled", beat_pulsar_enabled
 		)
+		haptics_enabled = config.get_value("accessibility", "haptics_enabled", haptics_enabled)
+		haptics_intensity = clampf(
+			float(config.get_value("accessibility", "haptics_intensity", haptics_intensity)),
+			0.0,
+			1.0
+		)
 		var loaded_bindings = config.get_value("input", "custom_bindings", {})
 		if typeof(loaded_bindings) == TYPE_DICTIONARY:
 			custom_bindings = loaded_bindings
@@ -81,6 +91,8 @@ func save() -> void:
 	config.set_value("accessibility", "ui_text_scale", ui_text_scale)
 	config.set_value("accessibility", "high_contrast_text", high_contrast_text)
 	config.set_value("accessibility", "beat_pulsar_enabled", beat_pulsar_enabled)
+	config.set_value("accessibility", "haptics_enabled", haptics_enabled)
+	config.set_value("accessibility", "haptics_intensity", haptics_intensity)
 	_save_bindings_to_config(config)
 	config.save(SAVE_PATH)
 
