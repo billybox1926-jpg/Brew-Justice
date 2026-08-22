@@ -28,6 +28,8 @@ var sensory_canvas: SensoryCanvas
 var story_beat_overload: StoryBeat
 
 var _prefs: Node
+## Session-state persistence owner (issue #57).
+var _state: Node
 ## Opt-in narration for insight text (issue #46); speaks only when
 ## PreferencesManager.tts_enabled is true.
 var _narrative_tts: NarrativeTTS
@@ -165,6 +167,7 @@ func _ready() -> void:
 	_setup_investigation_ui()
 	_setup_sensory_crime_loop()
 	_setup_preferences()
+	_setup_game_state()
 	disruption_overlay = disruption_overlay_node
 	if disruptor:
 		if disruptor.has_signal("chaos_pulse"):
@@ -679,6 +682,47 @@ func _setup_preferences() -> void:
 	if _prefs:
 		if _prefs.has_signal("preferences_updated"):
 			_prefs.preferences_updated.connect(_on_preferences_updated)
+
+
+## Persistence hooks (issue #57): load prior session state, then mirror live
+## clue clarity / beat completion into GameStateManager as the loop runs.
+func _setup_game_state() -> void:
+	_state = get_node_or_null("/root/GameStateManager")
+	if _state == null:
+		return
+	_state.load_state()
+	if smudge_resolver and smudge_resolver.has_signal("clarity_changed"):
+		smudge_resolver.clarity_changed.connect(_on_clue_clarity_for_save)
+	if neon_clue and neon_clue.has_signal("clarity_changed"):
+		neon_clue.clarity_changed.connect(_on_clue_clarity_for_save)
+	if investigation_beat and investigation_beat.has_signal("beat_resolved"):
+		investigation_beat.beat_resolved.connect(_on_investigation_resolved_for_save)
+	if story_beat_overload:
+		story_beat_overload.beat_ended.connect(_on_story_beat_ended_for_save)
+
+
+func _on_clue_clarity_for_save(clue_id: String, clarity: float) -> void:
+	if _state:
+		_state.record_clue_clarity(clue_id, clarity)
+
+
+func _on_investigation_resolved_for_save(_insight_text: String) -> void:
+	if _state:
+		_state.investigation_resolved = true
+
+
+func _on_story_beat_ended_for_save(beat_name: String) -> void:
+	if _state:
+		_state.mark_beat_completed(beat_name)
+
+
+func save_session_state() -> bool:
+	if _state == null:
+		return false
+	if evidence_board:
+		for id: String in evidence_board._clue_states:
+			_state.record_clue_clarity(id, evidence_board._clue_states[id])
+	return _state.save_state()
 
 
 func _on_beat_resolved(insight_text: String) -> void:
