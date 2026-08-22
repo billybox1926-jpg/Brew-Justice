@@ -177,6 +177,7 @@ func _ready() -> void:
 	_setup_preferences()
 	_setup_game_state()
 	_apply_rhythm_timing()
+	_setup_controller_bindings()
 	focus_fade = FocusTransitionFade.new()
 	focus_fade.name = "FocusTransitionFade"
 	add_child(focus_fade)
@@ -920,6 +921,15 @@ func _on_preferences_updated() -> void:
 func _apply_rhythm_timing() -> void:
 	if stim and _prefs:
 		stim.timing_mode = str(_prefs.rhythm_timing)
+
+
+## Controller input path (issue #60): default pad bindings alongside
+## keyboard, then any custom joypad bindings saved via PreferencesManager.
+func _setup_controller_bindings() -> void:
+	var bindings := ControllerBindings.new()
+	bindings.apply_default_joy_bindings()
+	if _prefs:
+		ControllerBindings.apply_saved_joy_bindings(_prefs)
 
 
 func _update_ui() -> void:
