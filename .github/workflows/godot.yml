@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+env:
+  GODOT_VERSION: 4.4-stable
+  GODOT_BIN: /tmp/godot/Godot_v4.4-stable_linux.x86_64
+  PROJECT_PATH: vertical-slice/godot
+
 jobs:
   godot-headless-check:
     runs-on: ubuntu-latest
@@ -20,9 +25,67 @@ jobs:
 
       - name: Download Godot 4.4 Linux
         run: |
-          curl -L -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4-stable/Godot_v4.4-stable_linux.x86_64.zip
+          curl -L -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v4.4-stable_linux.x86_64.zip
           unzip /tmp/godot.zip -d /tmp/godot
-          chmod +x /tmp/godot/Godot_v4.4-stable_linux.x86_64
+          chmod +x $GODOT_BIN
 
       - name: Verify project loads headlessly
-        run: /tmp/godot/Godot_v4.4-stable_linux.x86_64 --headless --path vertical-slice/godot --quit
+        run: $GODOT_BIN --headless --path $PROJECT_PATH --quit
+
+  godot-tests:
+    runs-on: ubuntu-latest
+    needs: godot-headless-check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.4 Linux
+        run: |
+          curl -L -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v4.4-stable_linux.x86_64.zip
+          unzip /tmp/godot.zip -d /tmp/godot
+          chmod +x $GODOT_BIN
+
+      # One editor import pass first so .godot/ caches (script class map,
+      # UIDs) exist before any test loads scripts by class name.
+      - name: Import project resources
+        run: $GODOT_BIN --headless --editor --import --path $PROJECT_PATH
+
+      - name: Parse-check every GDScript file
+        run: |
+          fails=0
+          while IFS= read -r f; do
+            if ! out=$($GODOT_BIN --headless --check-only --script "res://${f#vertical-slice/godot/}" --path $PROJECT_PATH 2>&1); then
+              echo "::error file=$f::$out"
+              fails=$((fails+1))
+            fi
+            echo "$out" | grep -q "Parse Error" && { echo "::error file=$f::parse error"; fails=$((fails+1)); }
+          done < <(find vertical-slice/godot/scripts vertical-slice/godot/autoloads vertical-slice/godot/resources vertical-slice/godot/test -name '*.gd')
+          exit $fails
+
+      - name: Focus-mode smoke runner
+        run: $GODOT_BIN --headless --path $PROJECT_PATH --script res://test/run_focus_mode_smoke.gd 2>&1 | tee smoke.log
+        # The runner exits nonzero on failure; grep guards the marker too.
+      - name: Assert smoke result
+        run: grep -q "SMOKE PASS" smoke.log
+
+      - name: Expanded integration suite
+        run: |
+          $GODOT_BIN --headless --path $PROJECT_PATH \
+            --script res://test/test_integration_expanded.gd 2>&1 | tee integration.log
+          grep -q "INTEGRATION PASS" integration.log
+
+      - name: WIRING.md drift guard
+        run: |
+          $GODOT_BIN --headless --path $PROJECT_PATH \
+            --script res://test/test_wiring_doc.gd 2>&1 | tee wiring.log
+          grep -q "WIRING PASS" wiring.log
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
+            smoke.log
+            integration.log
+            wiring.log
+          if-no-files-found: ignore

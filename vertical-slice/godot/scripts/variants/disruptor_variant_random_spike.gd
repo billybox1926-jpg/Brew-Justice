@@ -8,5 +8,5 @@ func _init() -> void:
 	duration = 0.15
 	interval = 5.0
 	auditory_band = "high"
-	lore_fragment = "A sharp static snaps the air every few seconds."
+	lore_text = "A sharp static snaps the air every few seconds."
 
