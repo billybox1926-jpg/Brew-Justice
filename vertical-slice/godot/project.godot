@@ -5,6 +5,7 @@
 [application]
 
 config/name="Brew & Justice"
+run/main_scene="res://scenes/focus_mode.tscn"
 config/features=PackedStringArray("4.4", "CGFloat")
 
 [autoload]
