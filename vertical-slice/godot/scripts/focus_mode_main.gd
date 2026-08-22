@@ -28,6 +28,9 @@ var sensory_canvas: SensoryCanvas
 var story_beat_overload: StoryBeat
 
 var _prefs: Node
+## Opt-in narration for insight text (issue #46); speaks only when
+## PreferencesManager.tts_enabled is true.
+var _narrative_tts: NarrativeTTS
 var _caption_label: RichTextLabel
 var _caption_timer: Timer
 
@@ -672,6 +675,7 @@ func _setup_investigation_ui() -> void:
 
 func _setup_preferences() -> void:
 	_prefs = get_node_or_null("/root/PreferencesManager")
+	_narrative_tts = NarrativeTTS.new()
 	if _prefs:
 		if _prefs.has_signal("preferences_updated"):
 			_prefs.preferences_updated.connect(_on_preferences_updated)
@@ -680,6 +684,8 @@ func _setup_preferences() -> void:
 func _on_beat_resolved(insight_text: String) -> void:
 	if investigation_ui:
 		investigation_ui.show_insight(insight_text)
+	if _narrative_tts:
+		_narrative_tts.speak(insight_text)
 
 
 func _input_map_add_or_replace(action: String, key: Key) -> void:
