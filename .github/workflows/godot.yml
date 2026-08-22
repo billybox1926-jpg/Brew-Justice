@@ -84,6 +84,14 @@ jobs:
           python -m pip install --quiet "gdtoolkit==4.*"
           bash scripts/check_gdscript.sh
 
+      - name: Export preset validation
+        run: |
+          curl -L -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v4.4-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/4.4.stable
+          unzip -o /tmp/templates.tpz -d /tmp/tpl
+          cp /tmp/tpl/templates/* ~/.local/share/godot/export_templates/4.4.stable/
+          bash scripts/check_export.sh
+
       - name: Upload test logs on failure
         if: failure()
         uses: actions/upload-artifact@v4

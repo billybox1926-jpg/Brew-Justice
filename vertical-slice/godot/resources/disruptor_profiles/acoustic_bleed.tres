@@ -1,4 +1,9 @@
+[gd_resource type="Resource" script_class="DisruptorProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/disruptor_profile.gd" id="1"]
+
 [resource]
+script = ExtResource("1")
 type="DisruptorProfile"
 id="acoustic_bleed"
 display_name="Acoustic Bleed"
@@ -6,4 +11,4 @@ description="A low, creeping pressure that wears down calm over time."
 chaos_style="drift"
 base_chaos_rate=0.45
 chaos_variance=0.05
-color=Color(0.4, 0.7, 1.0)
+color=Color(0.4, 0.7, 1.0, 1.0)
