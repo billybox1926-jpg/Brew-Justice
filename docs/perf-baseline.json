@@ -1,0 +1,26 @@
+{
+	"captured_with": "godot --headless --script res://test/profile_baseline.gd",
+	"frame_ms_mean": 7.29,
+	"frame_ms_p50": 6.889,
+	"frame_ms_p99": 15.486,
+	"frame_ms_worst": 29.958,
+	"frames": 240,
+	"memory_static_mb": 21.54,
+	"memory_static_peak_mb": 26.92,
+	"node_count": 35.0,
+	"object_count": 1530.0,
+	"overlay_children": [
+		"SensoryCanvas",
+		"AmbientAudio",
+		"SceneView",
+		"SensoryMeterBar",
+		"StateLabel",
+		"Highlight",
+		"StimIndicator",
+		"DisruptionOverlay",
+		"ObserverLight",
+		"RoomLight",
+		"NpcRegular",
+		"@RichTextLabel@9"
+	]
+}
