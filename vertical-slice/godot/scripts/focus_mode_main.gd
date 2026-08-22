@@ -583,8 +583,9 @@ func _setup_captions() -> void:
 		_caption_label.offset_bottom = -40
 		_caption_label.bbcode_enabled = true
 		_caption_label.modulate = Color(1, 1, 1, 0)
-		_caption_label.add_theme_color_override("default_color", Color(0.95, 0.95, 0.95))
-		_caption_label.add_theme_font_size_override("normal_font_size", 20)
+		UiText.new().apply_to_rich_label(
+			_caption_label, UiText.BASE_CAPTION_SIZE, Color(0.95, 0.95, 0.95)
+		)
 		_caption_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_caption_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		add_child(_caption_label)
@@ -881,6 +882,17 @@ func _on_preferences_updated() -> void:
 		return
 	_apply_colorblind_mode(_prefs.colorblind_mode)
 	_apply_reduced_motion()
+	# Re-apply text scaling/contrast to live labels (issue #45).
+	if state_label:
+		_stl_colorblind_safe(meter.mode_name() if meter else "Baseline", state_label, focus_active)
+	if _caption_label:
+		UiText.new().apply_to_rich_label(
+			_caption_label, UiText.BASE_CAPTION_SIZE, Color(0.95, 0.95, 0.95)
+		)
+	if investigation_ui and investigation_ui.label:
+		UiText.new().apply_to_label(
+			investigation_ui.label, UiText.BASE_INSIGHT_SIZE, Color(0.95, 0.95, 0.85)
+		)
 
 
 func _update_ui() -> void:
@@ -957,26 +969,29 @@ func _apply_colorblind_mode(enabled: bool) -> void:
 
 
 func _stl_colorblind_safe(mode: String, label: Label, is_focused: bool) -> void:
+	var ui_text := UiText.new()
 	if not _prefs or not _prefs.colorblind_mode:
-		label.add_theme_font_size_override("font_size", 14)
+		ui_text.apply_to_label(label, UiText.BASE_HINT_SIZE, Color(0.518, 0.506, 0.471))
 		label.text = (
 			"%s · %s — %0.f%%" % [FOCUS_TEXT_INACTIVE if not is_focused else "FOCUS", mode, sensory]
 		)
 		if not is_focused:
 			if mode == METER_MODE_BASELINE:
-				label.add_theme_color_override("font_color", Color(0.518, 0.506, 0.471))
+				label.add_theme_color_override(
+					"font_color", UiText.text_color(Color(0.518, 0.506, 0.471))
+				)
 			elif mode == METER_MODE_HYPERFOCUS:
-				label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.2))
+				label.add_theme_color_override(
+					"font_color", UiText.text_color(Color(1.0, 0.78, 0.2))
+				)
 			else:
-				label.add_theme_color_override("font_color", Color(0.96, 0.27, 0.24))
+				label.add_theme_color_override(
+					"font_color", UiText.text_color(Color(0.96, 0.27, 0.24))
+				)
 		return
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
+	ui_text.apply_to_label(label, UiText.BASE_STATE_SIZE, Color(0.95, 0.95, 0.95))
+	label.add_theme_color_override("font_color", UiText.text_color(Color(0.95, 0.95, 0.95)))
 	label.text = (
 		"%s · %s — %.0f%%"
 		% [FOCUS_TEXT_ACTIVE if is_focused else FOCUS_TEXT_INACTIVE, mode, sensory]
 	)
-
-
-static func maxf(a: float, b: float) -> float:
-	return a if a > b else b
