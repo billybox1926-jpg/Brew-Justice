@@ -235,7 +235,7 @@ func _setup_story_beat_overload() -> void:
 	transformer_variant.duration = 1.0
 	transformer_variant.interval = 4.0
 	transformer_variant.auditory_band = "low"
-	transformer_variant.lore_text = "A distant transformer hums through the wall."
+	transformer_variant.lore_text = L10n.t("LORE_TRANSFORMER_HUM")
 	story_beat_overload.variant_on_start = transformer_variant
 	_apply_disruptor_profile_for_active_clue()
 	add_child(story_beat_overload)
@@ -301,15 +301,15 @@ func _load_profile_from_manifest(profile_id: String) -> DisruptorProfile:
 func _focus_mode_phase_label(phase: int) -> String:
 	match phase:
 		SensoryCrimeLoop.Phase.OBSERVE:
-			return "Observe"
+			return L10n.t("PHASE_OBSERVE")
 		SensoryCrimeLoop.Phase.OVERLOAD:
-			return "Overload"
+			return L10n.t("PHASE_OVERLOAD")
 		SensoryCrimeLoop.Phase.STIM:
-			return "Stim"
+			return L10n.t("PHASE_STIM")
 		SensoryCrimeLoop.Phase.TUNE_IN:
-			return "Tune-in"
+			return L10n.t("PHASE_TUNE_IN")
 		SensoryCrimeLoop.Phase.RESOLVE:
-			return "Resolve"
+			return L10n.t("PHASE_RESOLVE")
 		_:
 			return ""
 
@@ -585,7 +585,7 @@ func _on_chaos_rich(strength: float, duration: float, band: String) -> void:
 		audio_manager.apply_chaos_band(band, strength)
 	_apply_antagonist_lore_for(band)
 	if _prefs and _prefs.captions_enabled:
-		_show_caption("Chaos surge — %s band" % band)
+		_show_caption(L10n.t("CAPTION_CHAOS_SURGE", [band]))
 
 
 func _setup_captions() -> void:
@@ -635,15 +635,15 @@ func _hide_caption() -> void:
 func _phase_caption(phase: int) -> String:
 	match phase:
 		SensoryCrimeLoop.Phase.OBSERVE:
-			return " observing..."
+			return L10n.t("CAPTION_OBSERVING")
 		SensoryCrimeLoop.Phase.OVERLOAD:
-			return "Overload — sensory noise rising"
+			return L10n.t("CAPTION_OVERLOAD")
 		SensoryCrimeLoop.Phase.STIM:
-			return "Stim — co-regulation available"
+			return L10n.t("CAPTION_STIM")
 		SensoryCrimeLoop.Phase.TUNE_IN:
-			return "Tune-in — follow the scent"
+			return L10n.t("CAPTION_TUNE_IN")
 		SensoryCrimeLoop.Phase.RESOLVE:
-			return "Resolve — clue available"
+			return L10n.t("CAPTION_RESOLVE")
 		_:
 			return ""
 
@@ -979,10 +979,10 @@ func _update_ui() -> void:
 	if meter_bar:
 		meter_bar.value = sensory
 	if sensory_label:
-		var chaos_suffix := " — chaos %.0f%%" % (chaos * 100.0)
+		var chaos_suffix := L10n.t("LABEL_CHAOS_SUFFIX", [chaos * 100.0])
 		if chaos <= 0.01:
 			chaos_suffix = ""
-		sensory_label.text = "Sensory Load %.0f%s" % [sensory, chaos_suffix]
+		sensory_label.text = L10n.t("LABEL_SENSORY_LOAD", [sensory, chaos_suffix])
 	if stim_indicator:
 		stim_indicator.visible = stim.holding
 	if tire_clue:

@@ -20,5 +20,5 @@ func _on_deduction(progress: float, insight_text: String) -> void:
 		_resolved = true
 		var text := insight_text
 		if text == null or text == "":
-			text = fallback_insight
+			text = L10n.t("INSIGHT_FALLBACK")
 		beat_resolved.emit(text)

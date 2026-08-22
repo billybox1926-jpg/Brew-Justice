@@ -33,12 +33,7 @@ func _ready() -> void:
 	label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiText.new().apply_to_label(label, UiText.BASE_INSIGHT_SIZE, Color(0.95, 0.95, 0.9))
-	label.text = (
-		"Sensory calibration\n\n"
-		+ "Choose how intense disruption feels comfortable:\n"
-		+ "[1] Gentle   [2] Standard   [3] Intense\n\n"
-		+ "Press Esc to skip and keep standard pacing."
-	)
+	label.text = (L10n.t("CALIBRATION_PROMPT").replace("||", "\n\n"))
 	panel.add_child(label)
 	visible = false
 	active = false

@@ -39,3 +39,7 @@ reset_sensory={
 [physics]
 
 common/enable_pause_aware_layers=false
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://locale/translations.en.translation", "res://locale/translations.es.translation")
