@@ -36,6 +36,8 @@ var focus_fade: FocusTransitionFade
 var audio_ducker: AudioDucker
 ## Visual beat indicator for deaf/HoH players (issue #49).
 var beat_pulsar: BeatPulsar
+## Gamepad vibration for rhythm/chaos feedback (issue #55).
+var haptics: HapticFeedback
 ## Opt-in narration for insight text (issue #46); speaks only when
 ## PreferencesManager.tts_enabled is true.
 var _narrative_tts: NarrativeTTS
