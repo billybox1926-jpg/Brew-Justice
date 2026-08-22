@@ -8,6 +8,10 @@ config/name="Brew & Justice"
 run/main_scene="res://scenes/focus_mode.tscn"
 config/features=PackedStringArray("4.4", "CGFloat")
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
 [autoload]
 
 PreferencesManager="*res://autoloads/preferences_manager.gd"
