@@ -38,7 +38,7 @@ func _evaluate_graph() -> void:
 			var clarity_b: float = _clue_states.get(id_b, 0.0)
 			if clarity_a > COMBINATION_THRESHOLD and clarity_b > COMBINATION_THRESHOLD:
 				var name_b: String = _graph[id_b].clue_name if _graph.has(id_b) else id_b
-				insights.append("Combined: %s + %s" % [data_a.clue_name, name_b])
+				insights.append(L10n.t("INSIGHT_COMBINED", [data_a.clue_name, name_b]))
 				total_progress += 1.0
 
 		for id_contra in data_a.contradicts:

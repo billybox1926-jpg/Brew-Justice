@@ -1,0 +1,23 @@
+keys,en,es
+FOCUS_BASELINE,Baseline,Base
+FOCUS_FOCUS,Focus,Enfoque
+PHASE_OBSERVE,Observe,Observar
+PHASE_OVERLOAD,Overload,Sobrecarga
+PHASE_STIM,Stim,Estímulo
+PHASE_TUNE_IN,Tune-in,Sintonizar
+PHASE_RESOLVE,Resolve,Resolver
+CAPTION_OBSERVING," observing..."," observando..."
+CAPTION_OVERLOAD,"Overload — sensory noise rising","Sobrecarga — el ruido sensorial aumenta"
+CAPTION_STIM,"Stim — co-regulation available","Estímulo — corregulación disponible"
+CAPTION_TUNE_IN,"Tune-in — follow the scent","Sintoniza — sigue el rastro"
+CAPTION_RESOLVE,"Resolve — clue available","Resuelve — pista disponible"
+CAPTION_CHAOS_SURGE,"Chaos surge — %s band","Oleada de caos — banda %s"
+LABEL_SENSORY_LOAD,"Sensory Load %.0f%s","Carga sensorial %.0f%s"
+LABEL_CHAOS_SUFFIX," — chaos %.0f%%"," — caos %.0f%%"
+LORE_TRANSFORMER_HUM,A distant transformer hums through the wall.,Un transformador lejano zumba a través de la pared.
+INSIGHT_COMBINED,Combined: %s + %s,Combinado: %s + %s
+INSIGHT_FALLBACK,A new connection emerges from what you noticed.,Una nueva conexión surge de lo que notaste.
+CALIBRATION_PROMPT,"Sensory calibration||Choose how intense disruption feels comfortable:||[1] Gentle   [2] Standard   [3] Intense||Press Esc to skip and keep standard pacing.","Calibración sensorial||Elige la intensidad de disrupción cómoda:||[1] Suave   [2] Estándar   [3] Intensa||Pulsa Esc para saltar y mantener el ritmo estándar."
+PACING_GENTLE,Gentle,Suave
+PACING_STANDARD,Standard,Estándar
+PACING_INTENSE,Intense,Intensa
