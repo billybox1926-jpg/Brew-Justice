@@ -8,7 +8,13 @@
 [![Contributors wanted](https://img.shields.io/badge/contributors-wanted-brightgreen)](https://github.com/billybox1926-jpg/Brew-Justice/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 <p align="center">
-  <img src="assets/readme-focus-mock.svg" alt="Animated focus-mode loop mock" width="320"/>
+  <img src="assets/readme-demo.gif" alt="Vertical slice in motion: sensory meter, stim trail with bind markers, focus dimming" width="720"/>
+</p>
+
+<p align="center">
+  <sub>Real capture of the vertical slice — stim to lower load, focus to dim
+  the periphery, trail + bind markers leading to the clue. (Static mock
+  still available: <a href="assets/readme-focus-mock.svg">readme-focus-mock.svg</a>)</sub>
 </p>
 
 A cozy neo-noir game about coffee, community, and **sensory justice** — built
