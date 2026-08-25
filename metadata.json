@@ -1,0 +1,8 @@
+{
+  "name": "Brew & Justice",
+  "description": "An accessibility-first sensory detective game where rhythm is your keenest investigative tool.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

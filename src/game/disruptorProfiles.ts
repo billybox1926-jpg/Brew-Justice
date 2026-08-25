@@ -1,0 +1,48 @@
+import { DisruptorProfile } from '../types';
+
+export const DISRUPTOR_PROFILES: Record<string, DisruptorProfile> = {
+  acoustic_bleed: {
+    id: 'acoustic_bleed',
+    displayName: 'Acoustic Bleed',
+    description: 'A low, creeping sub-bass pressure that wears down calm over time.',
+    chaosStyle: 'drift',
+    baseChaosRate: 0.45,
+    chaosVariance: 0.05,
+    color: '#38bdf8',
+    auditoryBand: 'low',
+    loreText: 'A deep acoustic resonance vibrates from the subway grate below.',
+  },
+  echo_weaver: {
+    id: 'echo_weaver',
+    displayName: 'Echo Weaver',
+    description: 'Rhythmic mid-band alley echo that mimics ambient cafe chatter.',
+    chaosStyle: 'rhythmic',
+    baseChaosRate: 0.6,
+    chaosVariance: 0.12,
+    color: '#c084fc',
+    auditoryBand: 'mid',
+    loreText: 'Disjointed whispers and coffee cup clatter echo between the brick facades.',
+  },
+  overload_artist: {
+    id: 'overload_artist',
+    displayName: 'Overload Artist',
+    description: 'High-frequency piercing neon flicker and transformer harmonics.',
+    chaosStyle: 'spikes',
+    baseChaosRate: 0.75,
+    chaosVariance: 0.2,
+    color: '#fb7185',
+    auditoryBand: 'high',
+    loreText: 'A high-voltage discharge arcs along an exposed wire overhead.',
+  },
+  static_junkie: {
+    id: 'static_junkie',
+    displayName: 'Static Junkie',
+    description: 'Wide-spectrum electromagnetic burst that tears through rhythm focus.',
+    chaosStyle: 'hum',
+    baseChaosRate: 0.85,
+    chaosVariance: 0.15,
+    color: '#f59e0b',
+    auditoryBand: 'all',
+    loreText: 'Shortwave radio static floods the sensor channels across the alley.',
+  },
+};
