@@ -8,17 +8,25 @@
 [![Contributors wanted](https://img.shields.io/badge/contributors-wanted-brightgreen)](https://github.com/billybox1926-jpg/Brew-Justice/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 <p align="center">
-  <img src="assets/readme-demo.gif" alt="Vertical slice in motion: sensory meter, stim trail with bind markers, focus dimming" width="720"/>
+  <img src="assets/web-app-resolve-phase.png" alt="Brew &amp; Justice web app in the RESOLVE phase: Sensory Engine panel showing focus active at full sensory load, a dashed stim trail across the scene with tread-pattern and brake-mark clue markers, and the Sensory Crime Loop panel with the case solved" width="900"/>
 </p>
 
 <p align="center">
-  <sub>Real capture of the vertical slice — stim to lower load, focus to dim
-  the periphery, trail + bind markers leading to the clue. (Static mock
-  still available: <a href="assets/readme-focus-mock.svg">readme-focus-mock.svg</a>)</sub>
+  <sub>The web build mid-case — focus active, sensory load peaked, trail and
+  clue markers resolved. (Godot vertical slice in motion:
+  <a href="assets/readme-demo.gif">readme-demo.gif</a> · static mock:
+  <a href="assets/readme-focus-mock.svg">readme-focus-mock.svg</a>)</sub>
 </p>
 
 A cozy neo-noir game about coffee, community, and **sensory justice** — built
 in Godot 4.4 (GDScript).
+
+> **Two implementations live in this repo.** The **Godot 4.4 vertical slice**
+> (`vertical-slice/godot/`) is the reference build — it drives CI, the desktop
+> and web exports, and the accessibility work. A **React + TypeScript web app**
+> (`src/`, Vite) implements the same sensory-detective loop in the browser and
+> is what the screenshot above shows. Both share the design; neither is a port
+> of the other's code.
 
 ## Why this exists
 
